@@ -23,7 +23,7 @@ Enabling touch events.
 
 ## Want to contribute?
 
-All changes in code must go to `./source` directory. `jquery.raphboard.js` is a generated file!
+All changes in code must go to `source` directory. `jquery.raphboard.js` is a generated file!
 
 After adding your changes, execute `grunt dist`, the minified version will be created, commit and you are ready to make a pull request!
 
@@ -44,4 +44,4 @@ Remember to add all the info that can be useful such as
 
 Copyright © 2012-2013 [Miroslav Hibler](http://miro.hibler.me) 
 
-Licensed under the [**MIT**](https://MiroHibler.github.com/RaphBoard/LICENSE.txt) license.
+Licensed under the [**MIT**](./LICENSE.txt) license.
