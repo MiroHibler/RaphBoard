@@ -3,7 +3,7 @@ build/component
 dist
 
 # local testing
-demos
+# demos
 
 # npm
 node_modules
