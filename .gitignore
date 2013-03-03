@@ -1,7 +1,9 @@
 # compiled
 build/component
-demos
 dist
 
-# for npm
+# local testing
+demos
+
+# npm
 node_modules
