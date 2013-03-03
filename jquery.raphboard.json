@@ -1,0 +1,36 @@
+{
+	"name"			: "raphboard",
+	"version"		: "1.0.0",
+	"dependencies"	: {
+		"raphael"	: "",
+		"jquery"	: ""
+  },
+
+  "optionalDependencies": {
+  },
+
+	"title"			: "RaphBoard",
+	"description"	: "Online drawing board based on Raphaël",
+	"keywords"		: [ "online", "drawing", "canvas", "raphael" ],
+
+	"homepage"	: "http://MiroHibler.github.com/RaphBoard/",
+	"demo"		: "http://MiroHibler.github.com/RaphBoard/",
+	"docs"		: "http://MiroHibler.github.com/RaphBoard/",
+	"download"	: "http://MiroHibler.github.com/RaphBoard/",
+	"bugs"		: "https://groups.google.com/d/forum/raphboard",
+
+  "licenses": [
+    {
+		"type"	: "MIT",
+		"url"	: "https://github.com/MiroHibler/RaphBoard/blob/master/LICENSE.txt"
+    }
+  ],
+
+  "author": {
+	"name"	: "Miroslav Hibler",
+	"email"	: "miro@hibler.me",
+	"url"	: "http://miro.hibler.me/"
+  },
+
+	"copyright"	: "2012-2013 Miroslav Hibler"
+}

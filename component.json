@@ -1,0 +1,7 @@
+{
+  "main": [
+    "./source/jquery.raphboard.js",
+    "./source/common/RaphBoard.css",
+    "./source/common/images/chalkboard.jpg"
+  ]
+}

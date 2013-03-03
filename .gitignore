@@ -1,0 +1,8 @@
+# compiled
+build/out
+build/component
+demos
+dist
+
+# for npm
+node_modules
