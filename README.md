@@ -2,7 +2,7 @@
 
 ## Cross-browser drawing board based on [Raphaël](http://MiroHibler.github.io/RaphBoard/). 
 
-![RaphBoard - Cross-browser drawing board](http://MiroHibler.github.io/RaphBoard/images/RaphBoard.png)
+![RaphBoard - Cross-browser drawing board](http://MiroHibler.github.io/RaphBoard/images/RaphBoard.jpg)
 
 Visit the [library website](http://MiroHibler.github.io/RaphBoard/) for more information.
 
