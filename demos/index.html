@@ -1,0 +1,21 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>RaphBoard</title>
+		<link rel="stylesheet" href="../build/out/demos/css/RaphBoard.css" type="text/css" media="screen" />
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script type="text/javascript" src="../build/out/raphael/raphael-min.js"></script>
+		<script type="text/javascript" src="../build/out/RaphBoard/jquery.raphboard.min.js"></script>
+		<script type="text/javascript">
+			jQuery( document ).ready( function( $ ) {
+				var RB = $( ".board" ).RaphBoard();
+				$( "#version" ).html( RB.version() );
+			});
+		</script>
+	</head>
+	<body>
+		<div class="board"></div>
+		<p id="copy">Demo of <a href="https://github.com/MiroHibler/RaphBoard">RaphBoard</a> v<span id="version"></span> — Cross-browser drawing board based on <a href="http://raphaeljs.com">Raphaël</a></p>
+	</body>
+</html>
