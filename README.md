@@ -1,8 +1,8 @@
 # RaphBoard
 
-## Cross-browser drawing board based on [Raphaël](http://MiroHibler.github.io/RaphBoard/images/RaphBoard.png). 
+## Cross-browser drawing board based on [Raphaël](http://MiroHibler.github.io/RaphBoard/). 
 
-![RaphBoard - Cross-browser drawing board](http://cl.ly/image/2y1o0X0G1235)
+![RaphBoard - Cross-browser drawing board](http://MiroHibler.github.io/RaphBoard/images/RaphBoard.png)
 
 Visit the [library website](http://MiroHibler.github.io/RaphBoard/) for more information.
 
