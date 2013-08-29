@@ -2,17 +2,14 @@
 
 ## Cross-browser drawing board based on [Raphaël](http://raphaeljs.com/). 
 
-Visit the library [website](http://MiroHibler.github.com/RaphBoard/) for more information.
+![RaphBoard - Cross-browser drawing board](http://cl.ly/image/2y1o0X0G1235)
+
+Visit the [library website](http://MiroHibler.github.io/RaphBoard/) for more information.
 
 ### Dependencies
 * [grunt](http://gruntjs.com/)
 * [jQuery](http://jquery.com/)
 * [Raphaël](https://github.com/DmitryBaranovskiy/raphael/)
-
-## Quickstart guide
-
-* `git clone https://github.com/MiroHibler/RaphBoard.git`
-* `grunt --help` to see available options
 
 ## Development
 
@@ -25,15 +22,18 @@ Enabling touch events.
 
 ## Want to contribute?
 
-All changes in code must go to `source` directory. `jquery.raphboard.js` is a generated file!
+* `git clone https://github.com/MiroHibler/RaphBoard.git`
+* `grunt --help` to see available options
 
-After adding your changes, execute `grunt dist`, the minified version will be created, commit and you are ready to make a pull request!
+***PLEASE NOTE:** All changes in code must go to `source` directory! `jquery.raphboard.js` is a generated file!**
+
+After adding your changes, execute `grunt` in the project folder to generate the minified version, commit and you are ready to make a pull request!
 
 ## Found an issue?
 
 First search for similar issues to make sure you don't repeat an existing one.
 
-Then please create a fiddle ([boilerplate](http://jsfiddle.net/MZwAW/)) recreating the bug so we can find out what the problem is more easily (or be a hero and find it yourself and send a pull request!). You can also use the [playground](http://MiroHibler.github.io/RaphBoard/playground.html) to reproduce your issues.
+Then please create a fiddle ([boilerplate](http://jsfiddle.net/MZwAW/)) recreating the bug so we can find out what the problem is more easily (or be a hero and find it yourself and send a pull request!). You can also use the [RaphBoard playground](http://MiroHibler.github.io/RaphBoard/playground.html) to reproduce your issues.
 
 Remember to add all the info that can be useful such as
 
