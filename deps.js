@@ -12,7 +12,7 @@
 // all files are relative to the project root
 
 var files = [
-	'lib/raphael-min.js'
+	'raphael/raphael-min.js'
 ];
 
 

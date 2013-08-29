@@ -1,8 +1,9 @@
 # compiled
 build/component
+build/out/demos
 dist
 
-# local testing
+# local demo & test
 demos
 
 # npm

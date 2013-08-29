@@ -11,7 +11,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-watch'); // Very useful for development. See README.
-	// grunt.loadNpmTasks('grunt-contrib-yuidoc');
 
 
 	// read config files, and combine into one "meta" object
@@ -30,13 +29,12 @@ module.exports = function(grunt) {
 		copy: {},
 		compress: {},
 		clean: {},
-		watch: {}, // we will add watch tasks whenever we do concats, so files get re-concatenated upon save
-		docs: {}
+		watch: {}	// we will add watch tasks whenever we do concats, so files get re-concatenated upon save
 	};
 
 
 	// files that the demos might need in the distributable
-	var depFiles = require('./build/deps.js');
+	var depFiles = require('./deps.js');
 
 
 	/* Important Top-Level Tasks
@@ -105,7 +103,7 @@ module.exports = function(grunt) {
 			process: true	// replace template variables
 		},
 		src: [
-			'source/common/RaphBoard.css'
+			'demos/css/RaphBoard.css'
 		],
 		dest: 'build/out/demos/css/RaphBoard.css'
 	};
@@ -135,8 +133,7 @@ module.exports = function(grunt) {
 		expand: true,
 		flatten: true,
 		src: depFiles,
-		dest: 'build/out/raphael/'	// all depenencies will go in the raphael/ directory for now
-									// (because we only have raphael)
+		dest: 'build/out/raphael/'
 	};
 
 
@@ -172,7 +169,7 @@ module.exports = function(grunt) {
 		return content.replace(
 			/(<script[^>]*src=['"])(.*?)(['"][\s\S]*?<\/script>)/g,
 			function(full, before, src, after) {
-				if (src == '../build/deps.js') {
+				if (src == '../deps.js') {
 					return buildDepScriptTags();
 				}
 				else {
@@ -225,6 +222,7 @@ module.exports = function(grunt) {
 		'clean:build',
 		'submodules',
 		'uglify', // we want the minified JS in there
+		'copy:demos',
 		'copy:component',
 		'copy:componentReadme',
 		'componentConfig'
@@ -238,7 +236,7 @@ module.exports = function(grunt) {
 	};
 
 	config.copy.componentReadme = {
-		src: 'build/component-readme.md',
+		src: 'component-readme.md',
 		dest: 'build/component/README.md'
 	};
 
@@ -254,31 +252,6 @@ module.exports = function(grunt) {
 	});
 
 
-	/* Generate documentation
-	----------------------------------------------------------------------------------------------------*/
-	/*
-	grunt.registerTask('docs', 'Build the RaphBoard documentation', [
-		'docs'
-	]);
-
-	config.docs.all = {
-		pkg: grunt.file.readJSON('jquery.raphboard.json'),
-		yuidoc: {
-			compile: {
-				name: '<%= pkg.name %>',
-				description: '<%= pkg.description %>',
-				version: '<%= pkg.version %>',
-				url: '<%= pkg.homepage %>',
-				options: {
-					exclude: 'header.js,footer.js',
-					paths: 'source/',
-					outdir: 'docs/'
-				}
-			}
-		}
-	}
-	*/
-
 	/* Clean Up Files
 	----------------------------------------------------------------------------------------------------*/
 
@@ -290,6 +263,8 @@ module.exports = function(grunt) {
 	config.clean.dist = 'dist/*';
 
 
+	/* Finish Up
+	----------------------------------------------------------------------------------------------------*/
 
 	// finally, give grunt the config object...
 	grunt.initConfig(config);

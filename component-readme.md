@@ -1,6 +1,6 @@
 
 RaphBoard Component
-======================
+===================
 
 This repo is the official [Bower](http://twitter.github.com/bower/) component endpoint for the
 [RaphBoard Project](http://MiroHibler.github.com/RaphBoard/).
