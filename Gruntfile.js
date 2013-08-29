@@ -11,6 +11,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-compress');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-watch'); // Very useful for development. See README.
+	// grunt.loadNpmTasks('grunt-contrib-yuidoc');
 
 
 	// read config files, and combine into one "meta" object
@@ -29,7 +30,8 @@ module.exports = function(grunt) {
 		copy: {},
 		compress: {},
 		clean: {},
-		watch: {} // we will add watch tasks whenever we do concats, so files get re-concatenated upon save
+		watch: {}, // we will add watch tasks whenever we do concats, so files get re-concatenated upon save
+		docs: {}
 	};
 
 
@@ -53,6 +55,11 @@ module.exports = function(grunt) {
 	]);
 
 	grunt.registerTask('dev', 'Build necessary files for developing and debugging', 'submodules');
+
+	grunt.registerTask('min', 'The same as dev + uglify', [
+		'submodules',
+		'uglify'
+	]);
 
 	grunt.registerTask('submodules', 'Build all RaphBoard submodules', [
 		'main'
@@ -80,7 +87,7 @@ module.exports = function(grunt) {
 			'source/ToolBar.js',
 			'source/Canvas.js',
 			'source/AttributesPanel.js',
-			'source/main.js',
+			'source/RaphBoard.js',
 			'source/footer.js'
 		],
 		dest: 'build/out/RaphBoard/jquery.raphboard.js'
@@ -246,6 +253,31 @@ module.exports = function(grunt) {
 		);
 	});
 
+
+	/* Generate documentation
+	----------------------------------------------------------------------------------------------------*/
+	/*
+	grunt.registerTask('docs', 'Build the RaphBoard documentation', [
+		'docs'
+	]);
+
+	config.docs.all = {
+		pkg: grunt.file.readJSON('jquery.raphboard.json'),
+		yuidoc: {
+			compile: {
+				name: '<%= pkg.name %>',
+				description: '<%= pkg.description %>',
+				version: '<%= pkg.version %>',
+				url: '<%= pkg.homepage %>',
+				options: {
+					exclude: 'header.js,footer.js',
+					paths: 'source/',
+					outdir: 'docs/'
+				}
+			}
+		}
+	}
+	*/
 
 	/* Clean Up Files
 	----------------------------------------------------------------------------------------------------*/

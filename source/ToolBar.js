@@ -2,26 +2,27 @@
 		init: function ( RB, id ) {
 			var self = this;
 
-			self.isEnabled = true;
-			self.height = 40;
-			self.container = $( "#" + id )
-			self.buttons = [];
+			self._board = RB;
+			self._isEnabled = true;
+			self._height = 40;
+			self._container = $( "#" + id )
+			self._buttons = [];
 
-			self.container.css( {
+			self._container.css( {
 				position	: "relative",
-				width		: RB.width() + "px",
-				height		: self.height + "px"
+				width		: self._board.width() + "px",
+				height		: self._height + "px"
 			} );
 
-			self.paper = Raphael( id, RB.width(), self.height );
+			self._paper = Raphael( id, self._board.width(), self._height );
 			// Fix for half-pixel position ( "left: -0.5px" )
-			var containerSVG = self.container.children( ":first" );
+			var containerSVG = self._container.children( ":first" );
 			if ( containerSVG.css( "position" ) == "relative" ) {
 				containerSVG.css( "left", "" );
 				containerSVG.css( "top", "" );
 			}
 
-			self.background = self.paper.rect( 0, 0, RB.width(), self.height ).attr( { fill: "90-#555-#000", stroke: "none" } );
+			self._background = self._paper.rect( 0, 0, self._board.width(), self._height ).attr( { fill: "90-#555-#000", stroke: "none" } );
 
 			// Default ToolBar Tools
 			var Tools = {
@@ -48,27 +49,27 @@
 				var button = Button( self, name, {
 					x		: x - 4,
 					y		: 0,
-					width	: self.height,
-					height	: self.height,
-					title	: Tools[ name ].title,
+					width	: self._height,
+					height	: self._height,
+					title	: Tools[name].title,
 					fill	: "rgba(0,0,0,0)",
 					stroke	: "none"
 				} );
-				button.addIcon( Tools[ name ].path, {
+				button.addIcon( ButtonIcon( button, Tools[name].path, {
 					fill		: "90-#888-#CCC",
 					stroke		: "none",
-					transform	: "t" + x + ",4" + ( Tools[ name ].scale != "" ? "s" + Tools[ name ].scale : "" )
-				} );
+					transform	: "t" + x + ",4" + ( Tools[name].scale != "" ? "s" + Tools[name].scale : "" )
+				} ) );
 				button.hover(
 					function () {		// mouseIn
-						if ( RB.options.editable && !this.isSelected ) {
-							if ( this.name != "undo" && this.name != "redo" ) {
+						if ( self._board.options.editable && !this.isSelected() ) {
+							if ( this.name() != "undo" && this.name() != "redo" ) {
 								this.highlight( true, false );
 							}
 						}
 					}, function () {	// mouseOut
-						if ( RB.options.editable && !this.isSelected ) {
-							if ( this.name != "undo" && this.name != "redo" ) {
+						if ( self._board.options.editable && !this.isSelected() ) {
+							if ( this.name() != "undo" && this.name() != "redo" ) {
 								this.highlight( false, false );
 							}
 						}
@@ -76,23 +77,23 @@
 				);
 				button.mouseDown(
 					function () {
-						if ( RB.options.editable ) {
-							if ( !this.isSelected ) {
-								switch( this.name ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+						if ( self._board.options.editable ) {
+							if ( !this.isSelected() ) {
+								switch( this.name() ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 									case "undo":
 									case "redo":
 										break;
 									case "clear":
-										this.select( true );
+										this.select();
 										break;
 									case "palette":
-										RB.canvas.container.unbind( "mouseenter" );
-										this.select( true );
+										self._board.canvas._container.unbind( "mouseenter" );
+										this.select();
 										break;
 									default:
-										RB.toolBar.deselectAll();
+										self.deselectAll();
 										// this.select( true );
-										if ( RB.getMode != this.name ) RB.setMode( this.name );
+										if ( self._board.mode() != this.name() ) self._board.mode( this.name() );
 								}
 							}
 						}
@@ -100,25 +101,25 @@
 				);
 				button.mouseUp(
 					function () {		// mouse_up
-						if ( RB.options.editable ) {
-							switch( this.name ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+						if ( self._board.options.editable ) {
+							switch( this.name() ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 								case "undo":
-									if ( EventHandler( RB, "before_undo" ) ) RB.undo();
-									EventHandler( RB, "after_undo" );
+									if ( EventHandler( self._board, "before_undo" ) ) self._board.undo();
+									EventHandler( self._board, "after_undo" );
 									break;
 								case "redo":
-									if ( EventHandler( RB, "before_redo" ) ) RB.redo();
-									EventHandler( RB, "after_redo" );
+									if ( EventHandler( self._board, "before_redo" ) ) self._board.redo();
+									EventHandler( self._board, "after_redo" );
 									break;
 								case "clear":
-									this.select( false );
+									this.deselect();
 									this.highlight( true, false );
-									if ( EventHandler( RB, "before_clear" ) ) RB.clear();
-									EventHandler( RB, "after_clear" );
+									if ( EventHandler( self._board, "before_clear" ) ) self._board.clear();
+									EventHandler( self._board, "after_clear" );
 									break;
 								case "palette":
-									RB.attributesPanel.show();
-									this.select( false );
+									self._board.attributesPanel.show();
+									this.deselect();
 									this.highlight( true, true );
 									break;
 								default: //	no default
@@ -127,74 +128,111 @@
 					}
 				);
 				self.addButton( button );
-				x += self.height;
+				x += self._height;
 			}
 
 			return self;
 		},
 
+		// Properties
 		height: function () {
-			return this.height;
+			return this._height;
 		},
 
 		background: function () {
-			return this.background;
+			return this._background;
 		},
 
 		buttons: function () {
-			return this.buttons;
+			return this._buttons;
+		},
+
+		// Methods
+		enable: function () {
+			var self = this;
+
+			self._isEnabled = true;
+			_ToggleButtons( true );
+
+			var _activeButton = self.button( self._board.mode() );
+			if ( _activeButton.name() != "undo" && _activeButton.name() != "redo" ) {
+				_activeButton.select();
+			}
+
+			return self;
+		},
+
+		disable: function () {
+			var self = this;
+
+			self._isEnabled = false;
+			_ToggleButtons( false );
+
+			self.deselectAll();
+
+			return self;
 		},
 
 		addButton: function ( button ) {
-			this.buttons.push( button );
+			var self = this;
+
+			self._buttons.push( button );
+
+			return self;
 		},
 
 		insertButton: function ( button, index ) {
-			this.buttons.splice( index, 1, button );
+			var self = this;
+
+			self._buttons.splice( index, 1, button );
+
+			return self;
 		},
 
 		removeButton: function ( button ) {
 			var self = this;
 
-			self.buttons.splice( $.inArray( button, self.buttons ), 1 );
+			self._buttons.splice( $.inArray( button, self._buttons ), 1 );
 			button.set.clear();
+
+			return self;
 		},
 
 		button: function ( name ) {
 			var self = this;
 
-			for ( idx in self.buttons ) {
-				if ( self.buttons[idx].name == name ) {
-					return self.buttons[idx];
+			for ( idx in self._buttons ) {
+				if ( self._buttons[idx].name() == name ) {
+					return self._buttons[idx];
 				}
 			}
 		},
 
 		deselectAll: function () {
 			var self = this;
-			var buttons = self.buttons;
+			var buttons = self._buttons;
 
 			for ( idx in buttons ) {
-				if ( buttons[idx].name != "undo" && buttons[idx].name != "redo" ) {
-					buttons[idx].select( false );
+				if ( buttons[idx].name() != "undo" && buttons[idx].name() != "redo" ) {
+					buttons[idx].deselect();
 				}
 			}
-		},
 
-		enabled: function ( enable ) {
-			var self = this;
-
-			self.isEnabled = enable;
-			if ( !enable ) {
-				self.deselectAll();
-			}
-
-			var buttons = self.buttons;
-			for ( idx in buttons ) {
-				buttons[idx].enabled( enable );
-			}
-		} 
+			return self;
+		}
 	};
+
+	function _ToggleButtons ( toggle ) {
+		var self = this;
+
+		for ( idx in self._buttons ) {
+			if ( toggle ) {
+				self._buttons[idx].enable();
+			} else {
+				self._buttons[idx].disable();
+			}
+		}
+	}
 
 	function ToolBar ( board, id ) {
 		return Object.create( _toolBar ).init( board, id );

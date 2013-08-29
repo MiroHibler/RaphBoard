@@ -1,12 +1,12 @@
-// ┌─────────────────────────────────────────────────────────────────────────────────────────────┐ \\
-// │ RaphBoard v1.0.0 - Cross-browser online blackboard based on Raphaël                         │ \\
-// ├─────────────────────────────────────────────────────────────────────────────────────────────┤ \\
-// │ Copyright © 2012-2013 Miroslav Hibler (http://MiroHibler.github.com/RaphBoard/)             │ \\
-// ├─────────────────────────────────────────────────────────────────────────────────────────────┤ \\
-// │ Licensed under the MIT (http://MiroHibler.github.com/RaphBoard/LICENSE.txt) license.        │ \\
-// ├─────────────────────────────────────────────────────────────────────────────────────────────┤ \\
-// │ Requirements: Raphaël, jQuery                                                               │ \\
-// └─────────────────────────────────────────────────────────────────────────────────────────────┘ \\
+/*! ┌─────────────────────────────────────────────────────────────────────────────────────────────┐ */
+/*! │ RaphBoard v1.0.1 - Cross-browser drawing board based on Raphaël                             │ */
+/*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
+/*! │ Copyright © 2012-2013 Miroslav Hibler (http://MiroHibler.github.com/RaphBoard/)             │ */
+/*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
+/*! │ Licensed under the MIT (http://MiroHibler.github.com/RaphBoard/LICENSE.txt) license.        │ */
+/*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
+/*! │ Requirements: Raphaël, jQuery                                                               │ */
+/*! └─────────────────────────────────────────────────────────────────────────────────────────────┘ */
 
 // Object Creation Utility
 ;if ( typeof Object.create !== "function" ) {
@@ -22,39 +22,51 @@
 	var _buttonIcon = {
 		init: function ( button, path, attr ) {
 			var self = this;
-			self.button = button;
 
-			self.path = button.toolBar.paper.path( path ).attr( attr );
+			self._button = button;
+			self._path = button._toolBar._paper.path( path ).attr( attr );
+
+			return self;
+		},
+
+		// Properties
+		isGlowing: function () {
+			return ( typeof this._path._glow === "object" );
+		},
+
+		isVisible: function () {
+			return this._path.node.style.display !== "none";
+		},
+
+		// Methods
+		glow: function ( state ) {
+			var self = this;
+
+			if ( state ) {
+				self._path._glow = self._path.glow();
+			} else {
+				if ( self.isGlowing() ) {
+					self._path._glow.remove();
+				}
+			}
 
 			return self;
 		},
 
 		show: function () {
-			this.path.show();
-		},
+			var self = this;
 
-		isVisible: function () {
-			return this.path.node.style.display !== "none";
+			self._path.show();
+
+			return self;
 		},
 
 		hide: function () {
-			this.path.hide();
-		},
-
-		isGlowing: function () {
-			return ( typeof this.path.g === "object" );
-		},
-
-		glow: function ( state ) {
 			var self = this;
 
-			if ( state ) {
-				self.path.g = self.path.glow();
-			} else {
-				if ( self.isGlowing() ) {
-					self.path.g.remove();
-				}
-			}
+			self._path.hide();
+
+			return self;
 		}
 	};
 
@@ -66,62 +78,143 @@
 		init: function ( toolBar, name, attr ) {
 			var self = this;
 
-			self.icons = [];
-			self.name = name;
-			self.toolBar = toolBar;
-			self.isEnabled = true;
-			self.isSelected = false;
+			self._toolBar = toolBar;
+			self._name = name;
+			self._icons = [];
+			self._isEnabled = true;
+			self._isSelected = false;
 
-			var p = toolBar.paper;
-			self.set = p.set();
-			self.paths = p.set();
-			self.set.push( self.paths );
-			self.rect = p.rect( 0, 0, 0, 0 ).attr( attr );
-			self.set.push( self.rect );
+			var _p = toolBar._paper;
+			self._set = _p.set();
+			self._paths = _p.set();
+			self._set.push( self._paths );
+			self._rect = _p.rect( 0, 0, 0, 0 ).attr( attr );
+			self._set.push( self._rect );
 
 			return self;
 		},
 
-		addIcon: function ( path, attr ) {
-			var self = this;
-
-			var newIcon = ButtonIcon( self, path, attr );
-			self.icons.push( newIcon );
-			self.paths.push( newIcon.path );
-			self.showIcon( self.icons.length - 1 );
-			self.rect.toFront();
-
-			return newIcon;
+		// Properties
+		isEnabled: function () {
+			return this._isEnabled;
 		},
 
-		showIcon: function ( index ) {
+		isVisible: function () {
+			return this._isVisible;
+		},
+
+		isSelected: function () {
+			return this._isSelected;
+		},
+
+		name: function ( newName ) {
 			var self = this;
 
-			for ( ndx in self.icons ) {
-				self.icons[ndx].hide();
-			};
-			self.icons[index].show();
+			if ( newName !== undefined ) {
+				self._name = newName;
+			}
+
+			return self._name;
+		},
+
+		attr: function ( newAttr ) {
+			var self = this;
+
+			if ( typeof newAttr === "Object" ) {
+				self._rect.attr( $.extend( {}, self._rect.attr(), newAttr ) );
+			}
+
+			return self._rect.attr();
 		},
 
 		activeIcon: function () {
 			var self = this;
-			var activeIcon;
+			var _activeIcon;
 
-			for ( ndx in self.icons ) {
-				if ( self.icons[ndx].isVisible ) {
-					activeIcon = self.icons[ndx];
+			for ( ndx in self._icons ) {
+				if ( self._icons[ndx].isVisible() ) {
+					_activeIcon = self._icons[ndx];
 					break;
 				}
 			};
 
-			return activeIcon;
+			return _activeIcon;
+		},
+
+		hover: function ( mouseIn, mouseOut ) {
+			var self = this;
+
+			self._mouseIn = mouseIn;
+			self._mouseOut = mouseOut;
+			self._rect.hover( function () {
+				if ( self._isEnabled ) self._mouseIn();
+			}, function () {
+				if ( self._isEnabled ) self._mouseOut();
+			});
+
+			return self;
+		},
+
+		mouseDown: function ( mouseDown ) {
+			var self = this;
+
+			self._mouseDown = mouseDown;
+			self._rect.mousedown( function () {
+				if ( self._isEnabled ) self._mouseDown();
+			});
+
+			return self;
+		},
+
+		mouseUp: function ( mouseUp ) {
+			var self = this;
+
+			self._mouseUp = mouseUp;
+			self._rect.mouseup( function () {
+				if ( self._isEnabled ) self._mouseUp();
+			} );
+
+			return self;
+		},
+
+		// Methods
+		addIcon: function ( icon ) {
+			var self = this;
+
+			self._icons.push( icon );
+			self._paths.push( icon._path );
+			self.showIcon( self._icons.length - 1 );
+			self._rect.toFront();
+
+			return self;
+		},
+
+		insertIcon: function ( index, icon ) {
+			var self = this;
+
+			self._icons.splice( index, 1, icon );
+
+			return self;
 		},
 
 		removeIcon: function ( index ) {
 			var self = this;
 
-			self.icons[index].path.remove();
-			self.icons.splice( index, 1 );
+			self._icons[index]._path.remove();
+			self._icons.splice( index, 1 );
+
+			return self;
+		},
+
+		showIcon: function ( index ) {
+			var self = this;
+
+			for ( ndx in self._icons ) {
+				self._icons[ndx].hide();
+			};
+			self._icons[index].show();
+
+			return self;
 		},
 
 		highlight: function ( state, glow  ) {
@@ -129,53 +222,48 @@
 
 			if ( state ) {
 				self.activeIcon().glow( glow );
-				self.activeIcon().path.attr( { fill: "90-#6B9DF4-#4575ED", stroke: "none" } );
+				self.activeIcon()._path.attr( { fill: "90-#6B9DF4-#4575ED", stroke: "none" } );
 			} else {
 				self.activeIcon().glow( false );
-				self.activeIcon().path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+				self.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
 			}
+
+			return self;
 		},
 
-		hover: function ( mouseIn, mouseOut ) {
+		enable: function () {
 			var self = this;
 
-			self.mouseIn = mouseIn;
-			self.mouseOut = mouseOut;
-			self.rect.hover( function () {
-				if ( self.isEnabled ) self.mouseIn();
-			}, function () {
-				if ( self.isEnabled ) self.mouseOut();
-			});
+			self._isEnabled = true;
+
+			return self;
 		},
 
-		mouseDown: function ( mouseDown ) {
+		disable: function () {
 			var self = this;
 
-			self.mouseDown = mouseDown;
-			self.rect.mousedown( function () {
-				if ( self.isEnabled ) self.mouseDown();
-			});
+			self._isEnabled = false;
+
+			return self;
 		},
 
-		mouseUp: function ( mouseUp ) {
+		select: function () {
 			var self = this;
 
-			self.mouseUp = mouseUp;
-			self.rect.mouseup( function () {
-				if ( self.isEnabled ) self.mouseUp();
-			} );
+			self._isSelected = true;
+			self.highlight( true, true );
+
+			return self;
 		},
 
-		select: function ( state ) {
+		deselect: function () {
 			var self = this;
 
-			self.isSelected = state;
-			self.highlight( state, state );
-		},
+			self._isSelected = false;
+			self.highlight( false, false );
 
-		enabled: function ( enable ) {
-			this.isEnabled = enable;
-		} 
+			return self;
+		}
 	};
 
 	function Button ( toolBar, name, attr ) {
@@ -186,26 +274,27 @@
 		init: function ( RB, id ) {
 			var self = this;
 
-			self.isEnabled = true;
-			self.height = 40;
-			self.container = $( "#" + id )
-			self.buttons = [];
+			self._board = RB;
+			self._isEnabled = true;
+			self._height = 40;
+			self._container = $( "#" + id )
+			self._buttons = [];
 
-			self.container.css( {
+			self._container.css( {
 				position	: "relative",
-				width		: RB.width() + "px",
-				height		: self.height + "px"
+				width		: self._board.width() + "px",
+				height		: self._height + "px"
 			} );
 
-			self.paper = Raphael( id, RB.width(), self.height );
+			self._paper = Raphael( id, self._board.width(), self._height );
 			// Fix for half-pixel position ( "left: -0.5px" )
-			var containerSVG = self.container.children( ":first" );
+			var containerSVG = self._container.children( ":first" );
 			if ( containerSVG.css( "position" ) == "relative" ) {
 				containerSVG.css( "left", "" );
 				containerSVG.css( "top", "" );
 			}
 
-			self.background = self.paper.rect( 0, 0, RB.width(), self.height ).attr( { fill: "90-#555-#000", stroke: "none" } );
+			self._background = self._paper.rect( 0, 0, self._board.width(), self._height ).attr( { fill: "90-#555-#000", stroke: "none" } );
 
 			// Default ToolBar Tools
 			var Tools = {
@@ -232,27 +321,27 @@
 				var button = Button( self, name, {
 					x		: x - 4,
 					y		: 0,
-					width	: self.height,
-					height	: self.height,
-					title	: Tools[ name ].title,
+					width	: self._height,
+					height	: self._height,
+					title	: Tools[name].title,
 					fill	: "rgba(0,0,0,0)",
 					stroke	: "none"
 				} );
-				button.addIcon( Tools[ name ].path, {
+				button.addIcon( ButtonIcon( button, Tools[name].path, {
 					fill		: "90-#888-#CCC",
 					stroke		: "none",
-					transform	: "t" + x + ",4" + ( Tools[ name ].scale != "" ? "s" + Tools[ name ].scale : "" )
-				} );
+					transform	: "t" + x + ",4" + ( Tools[name].scale != "" ? "s" + Tools[name].scale : "" )
+				} ) );
 				button.hover(
 					function () {		// mouseIn
-						if ( RB.options.editable && !this.isSelected ) {
-							if ( this.name != "undo" && this.name != "redo" ) {
+						if ( self._board.options.editable && !this.isSelected() ) {
+							if ( this.name() != "undo" && this.name() != "redo" ) {
 								this.highlight( true, false );
 							}
 						}
 					}, function () {	// mouseOut
-						if ( RB.options.editable && !this.isSelected ) {
-							if ( this.name != "undo" && this.name != "redo" ) {
+						if ( self._board.options.editable && !this.isSelected() ) {
+							if ( this.name() != "undo" && this.name() != "redo" ) {
 								this.highlight( false, false );
 							}
 						}
@@ -260,23 +349,23 @@
 				);
 				button.mouseDown(
 					function () {
-						if ( RB.options.editable ) {
-							if ( !this.isSelected ) {
-								switch( this.name ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+						if ( self._board.options.editable ) {
+							if ( !this.isSelected() ) {
+								switch( this.name() ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 									case "undo":
 									case "redo":
 										break;
 									case "clear":
-										this.select( true );
+										this.select();
 										break;
 									case "palette":
-										RB.canvas.container.unbind( "mouseenter" );
-										this.select( true );
+										self._board.canvas._container.unbind( "mouseenter" );
+										this.select();
 										break;
 									default:
-										RB.toolBar.deselectAll();
+										self.deselectAll();
 										// this.select( true );
-										if ( RB.getMode != this.name ) RB.setMode( this.name );
+										if ( self._board.mode() != this.name() ) self._board.mode( this.name() );
 								}
 							}
 						}
@@ -284,25 +373,25 @@
 				);
 				button.mouseUp(
 					function () {		// mouse_up
-						if ( RB.options.editable ) {
-							switch( this.name ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+						if ( self._board.options.editable ) {
+							switch( this.name() ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 								case "undo":
-									if ( EventHandler( RB, "before_undo" ) ) RB.undo();
-									EventHandler( RB, "after_undo" );
+									if ( EventHandler( self._board, "before_undo" ) ) self._board.undo();
+									EventHandler( self._board, "after_undo" );
 									break;
 								case "redo":
-									if ( EventHandler( RB, "before_redo" ) ) RB.redo();
-									EventHandler( RB, "after_redo" );
+									if ( EventHandler( self._board, "before_redo" ) ) self._board.redo();
+									EventHandler( self._board, "after_redo" );
 									break;
 								case "clear":
-									this.select( false );
+									this.deselect();
 									this.highlight( true, false );
-									if ( EventHandler( RB, "before_clear" ) ) RB.clear();
-									EventHandler( RB, "after_clear" );
+									if ( EventHandler( self._board, "before_clear" ) ) self._board.clear();
+									EventHandler( self._board, "after_clear" );
 									break;
 								case "palette":
-									RB.attributesPanel.show();
-									this.select( false );
+									self._board.attributesPanel.show();
+									this.deselect();
 									this.highlight( true, true );
 									break;
 								default: //	no default
@@ -311,74 +400,111 @@
 					}
 				);
 				self.addButton( button );
-				x += self.height;
+				x += self._height;
 			}
 
 			return self;
 		},
 
+		// Properties
 		height: function () {
-			return this.height;
+			return this._height;
 		},
 
 		background: function () {
-			return this.background;
+			return this._background;
 		},
 
 		buttons: function () {
-			return this.buttons;
+			return this._buttons;
+		},
+
+		// Methods
+		enable: function () {
+			var self = this;
+
+			self._isEnabled = true;
+			_ToggleButtons( true );
+
+			var _activeButton = self.button( self._board.mode() );
+			if ( _activeButton.name() != "undo" && _activeButton.name() != "redo" ) {
+				_activeButton.select();
+			}
+
+			return self;
+		},
+
+		disable: function () {
+			var self = this;
+
+			self._isEnabled = false;
+			_ToggleButtons( false );
+
+			self.deselectAll();
+
+			return self;
 		},
 
 		addButton: function ( button ) {
-			this.buttons.push( button );
+			var self = this;
+
+			self._buttons.push( button );
+
+			return self;
 		},
 
 		insertButton: function ( button, index ) {
-			this.buttons.splice( index, 1, button );
+			var self = this;
+
+			self._buttons.splice( index, 1, button );
+
+			return self;
 		},
 
 		removeButton: function ( button ) {
 			var self = this;
 
-			self.buttons.splice( $.inArray( button, self.buttons ), 1 );
+			self._buttons.splice( $.inArray( button, self._buttons ), 1 );
 			button.set.clear();
+
+			return self;
 		},
 
 		button: function ( name ) {
 			var self = this;
 
-			for ( idx in self.buttons ) {
-				if ( self.buttons[idx].name == name ) {
-					return self.buttons[idx];
+			for ( idx in self._buttons ) {
+				if ( self._buttons[idx].name() == name ) {
+					return self._buttons[idx];
 				}
 			}
 		},
 
 		deselectAll: function () {
 			var self = this;
-			var buttons = self.buttons;
+			var buttons = self._buttons;
 
 			for ( idx in buttons ) {
-				if ( buttons[idx].name != "undo" && buttons[idx].name != "redo" ) {
-					buttons[idx].select( false );
+				if ( buttons[idx].name() != "undo" && buttons[idx].name() != "redo" ) {
+					buttons[idx].deselect();
 				}
 			}
-		},
 
-		enabled: function ( enable ) {
-			var self = this;
-
-			self.isEnabled = enable;
-			if ( !enable ) {
-				self.deselectAll();
-			}
-
-			var buttons = self.buttons;
-			for ( idx in buttons ) {
-				buttons[idx].enabled( enable );
-			}
-		} 
+			return self;
+		}
 	};
+
+	function _ToggleButtons ( toggle ) {
+		var self = this;
+
+		for ( idx in self._buttons ) {
+			if ( toggle ) {
+				self._buttons[idx].enable();
+			} else {
+				self._buttons[idx].disable();
+			}
+		}
+	}
 
 	function ToolBar ( board, id ) {
 		return Object.create( _toolBar ).init( board, id );
@@ -388,24 +514,30 @@
 		init: function ( RB, id ) {
 			var self = this;
 
-			self.container = $( "#" + id )
+			self._board = RB;
+			self._container = $( "#" + id )
 
-			self.container.css( {
+			self._container.css( {
 				position	: "relative",
-				width		: RB.width() + "px",
-				height		: ( RB.height() - ( RB.options.showToolBar ? RB.toolBar.height : 0 ) ) + "px"
+				width		: self._board.width() + "px",
+				height		: ( self._board.height() - ( self._board.options.showToolBar ? self._board.toolBar.height() : 0 ) ) + "px"
 			});
 
-			self.paper = Raphael( id, RB.width(), RB.height() - ( RB.options.showToolBar ? RB.toolBar.height : 0 ) );
+			self._paper = Raphael( id, self._board.width(), self._board.height() - ( self._board.options.showToolBar ? self._board.toolBar.height() : 0 ) );
 			// Fix for half-pixel position ( "left: -0.5px" )
-			var containerSVG = self.container.children( ":first" );
+			var containerSVG = self._container.children( ":first" );
 			if ( containerSVG.css( "position" ) == "relative" ) {
 				containerSVG.css( "left", "" );
 				containerSVG.css( "top", "" );
 			}
 
 			return self;
-		} 
+		},
+
+ 		// Properties
+		paper: function () {
+			return this._paper;
+		}
 	};
 
 	function Canvas ( board, id ) {
@@ -415,22 +547,23 @@
 	var _attributesPanel = {
 		init: function ( RB, id ) {
 			var self = this;
-			self.RB = RB;
 
-			self.container = $( "#" + id )
-			self.container.css( {
+			self._board = RB;
+			self._container = $( "#" + id )
+
+			self._container.css( {
 				position	: "relative",
-				top			: "-" + self.RB.height() + "px",
-				width		: self.RB.width() + "px",
-				height		: self.RB.height() + "px",
+				top			: "-" + self._board.height() + "px",
+				width		: self._board.width() + "px",
+				height		: self._board.height() + "px",
 				"z-index"	: "9999",
 				display		: "none"
 			} );
 
 
-			self.paper = Raphael( id, RB.width(), RB.height() );
+			self._paper = Raphael( id, self._board.width(), self._board.height() );
 			// Fix for half-pixel position ( "left: -0.5px" )
-			var containerSVG = self.container.children( ":first" );
+			var containerSVG = self._container.children( ":first" );
 			if ( containerSVG.css( "position" ) == "relative" ) {
 				containerSVG.css( "left", "" );
 				containerSVG.css( "top", "" );
@@ -439,6 +572,12 @@
 			return self;   
  		},
 
+ 		// Properties
+ 		paper: function () {
+ 			return this._paper;
+ 		},
+
+ 		// Methods
 		show: function () {
 			var self = this;
 
@@ -446,41 +585,42 @@
 
 			var x = 0;
 			var y = 0;
-			var w = self.RB.width();
-			var h = self.RB.height();
+			var w = self._board.width();
+			var h = self._board.height();
 
-			self.container.css( {
+			self._container.css( {
 				top			: "-" + h + "px",
 				width		: w + "px",
 				height		: h + "px",
 			} );
 
-			self.panel = self.paper.set();
-			self.panel.push( self.paper.rect( 0, 0, w, h ).attr( {
+			self._panel = self._paper.set();
+			self._panel.push( self._paper.rect( 0, 0, w, h ).attr( {
 				fill	: "rgba(0,0,0,0.25)",
 				stroke	: "none",
 				cursor	: "auto"
 			} ) );
-			self.panel.push( self.paper.rect( ( w/2 ) - 110, ( h/2 ) - 110, 220, 220, 16 ).attr( {
+			self._panel.push( self._paper.rect( ( w/2 ) - 110, ( h/2 ) - 110, 220, 220, 16 ).attr( {
 				fill	: "rgba(0,0,0,0.5)",
 				stroke	: "none"
 			} ) );
-			var picker = self.paper.circle( w/2, h/2, 90 ).attr( {
-				"fill"			: self.RB.options.fill,
-				"stroke"		: self.RB.options.stroke,
-				"stroke-width"	: self.RB.options.strokeWidth,
+			var picker = self._paper.circle( w/2, h/2, 90 ).attr( {
+				"fill"			: self._board.options.fill,
+				"stroke"		: self._board.options.stroke,
+				"stroke-width"	: self._board.options.strokeWidth,
 				"cursor"		: "pointer"
 			} );
-			self.panel.push( picker );
+			self._panel.push( picker );
 
-		// Fill Color Picker
-			var fillPicker = self.paper.set();
+			// Fill Color Picker
+			var fillPicker = self._paper.set();
 			var i = 0;
 			var angle = 0;
+
 			while ( angle < 360 ) {
 				var color = colors[ i ];
 				( function ( t, c ) {
-					fillPicker.push( self.paper.circle( w/2, ( h/2 ) + 40, 16 )
+					fillPicker.push( self._paper.circle( w/2, ( h/2 ) + 40, 16 )
 							.attr( {
 								stroke		: c,
 								fill		: c,
@@ -495,13 +635,14 @@
 				i++;
 				angle += 60;
 			}
-			var s = self.paper.set();
-			var fill_back = self.paper.circle( w/2, ( h/2 ), 16 ).attr( {
+
+			var s = self._paper.set();
+			var fill_back = self._paper.circle( w/2, ( h/2 ), 16 ).attr( {
 				fill	: "rgba(0,0,0,0)",
 				stroke	: "none"
 			} );
 			s.push( fill_back );
-			s.push( self.paper.path( "M11.478,17.568c-0.172-0.494-0.285-1.017-0.285-1.568c0-2.65,2.158-4.807,4.807-4.807c0.552,0,1.074,0.113,1.568,0.285l2.283-2.283C18.541,8.647,17.227,8.286,16,8.286C8.454,8.286,2.5,16,2.5,16s2.167,2.791,5.53,5.017L11.478,17.568zM23.518,11.185l-3.056,3.056c0.217,0.546,0.345,1.138,0.345,1.76c0,2.648-2.158,4.807-4.807,4.807c-0.622,0-1.213-0.128-1.76-0.345l-2.469,2.47c1.327,0.479,2.745,0.783,4.229,0.783c5.771,0,13.5-7.715,13.5-7.715S26.859,13.374,23.518,11.185zM25.542,4.917L4.855,25.604L6.27,27.02L26.956,6.332L25.542,4.917z" )
+			s.push( self._paper.path( "M11.478,17.568c-0.172-0.494-0.285-1.017-0.285-1.568c0-2.65,2.158-4.807,4.807-4.807c0.552,0,1.074,0.113,1.568,0.285l2.283-2.283C18.541,8.647,17.227,8.286,16,8.286C8.454,8.286,2.5,16,2.5,16s2.167,2.791,5.53,5.017L11.478,17.568zM23.518,11.185l-3.056,3.056c0.217,0.546,0.345,1.138,0.345,1.76c0,2.648-2.158,4.807-4.807,4.807c-0.622,0-1.213-0.128-1.76-0.345l-2.469,2.47c1.327,0.479,2.745,0.783,4.229,0.783c5.771,0,13.5-7.715,13.5-7.715S26.859,13.374,23.518,11.185zM25.542,4.917L4.855,25.604L6.27,27.02L26.956,6.332L25.542,4.917z" )
 				.attr( {
 					fill		: "#FFF",
 					stroke		: "#000",
@@ -523,13 +664,14 @@
 				} );
 			fillPicker.push( s );
 
-		// Stroke Color Picker
+			// Stroke Color Picker
 			var i = 0;
 			var angle = 105;
+
 			while ( angle < 270 ) {
 				var color = colors[ i ];
 				( function ( t, c ) {
-					self.panel.push( self.paper.circle( ( w/2 ), ( h/2 ) + 90, 16 )
+					self._panel.push( self._paper.circle( ( w/2 ), ( h/2 ) + 90, 16 )
 							.attr( {
 								stroke		: c,
 								fill		: c,
@@ -546,20 +688,21 @@
 				angle += 30;
 			}
 
-		// Stroke Width Picker
+			// Stroke Width Picker
 			var angle = 300;
 			var width = 12;
+
 			while ( angle <= 420 ) {
 				var color = "#000";
 				( function ( t, c, sw ) {
-					var s = self.paper.set();
-					var bg = self.paper.circle( ( w/2 ), ( h/2 ) + 90, 16 ).attr( {
+					var s = self._paper.set();
+					var bg = self._paper.circle( ( w/2 ), ( h/2 ) + 90, 16 ).attr( {
 						stroke	: "none",
 						fill	: "#C0C0C0"
 					} );
 					s.push( bg );
 					if ( sw > 0 ) {
-						s.push( self.paper.circle( ( w/2 ), ( h/2 ) + 90, ( sw/2 ) ).attr( {
+						s.push( self._paper.circle( ( w/2 ), ( h/2 ) + 90, ( sw/2 ) ).attr( {
 							stroke	: "none",
 							fill	: c
 						} ) );
@@ -572,7 +715,7 @@
 					} );
 					if ( sw == 0 ) {
 						var bgBox = bg.getBBox( false );
-						s.push( self.paper.path( "M11.478,17.568c-0.172-0.494-0.285-1.017-0.285-1.568c0-2.65,2.158-4.807,4.807-4.807c0.552,0,1.074,0.113,1.568,0.285l2.283-2.283C18.541,8.647,17.227,8.286,16,8.286C8.454,8.286,2.5,16,2.5,16s2.167,2.791,5.53,5.017L11.478,17.568zM23.518,11.185l-3.056,3.056c0.217,0.546,0.345,1.138,0.345,1.76c0,2.648-2.158,4.807-4.807,4.807c-0.622,0-1.213-0.128-1.76-0.345l-2.469,2.47c1.327,0.479,2.745,0.783,4.229,0.783c5.771,0,13.5-7.715,13.5-7.715S26.859,13.374,23.518,11.185zM25.542,4.917L4.855,25.604L6.27,27.02L26.956,6.332L25.542,4.917z" )
+						s.push( self._paper.path( "M11.478,17.568c-0.172-0.494-0.285-1.017-0.285-1.568c0-2.65,2.158-4.807,4.807-4.807c0.552,0,1.074,0.113,1.568,0.285l2.283-2.283C18.541,8.647,17.227,8.286,16,8.286C8.454,8.286,2.5,16,2.5,16s2.167,2.791,5.53,5.017L11.478,17.568zM23.518,11.185l-3.056,3.056c0.217,0.546,0.345,1.138,0.345,1.76c0,2.648-2.158,4.807-4.807,4.807c-0.622,0-1.213-0.128-1.76-0.345l-2.469,2.47c1.327,0.479,2.745,0.783,4.229,0.783c5.771,0,13.5-7.715,13.5-7.715S26.859,13.374,23.518,11.185zM25.542,4.917L4.855,25.604L6.27,27.02L26.956,6.332L25.542,4.917z" )
 							.attr( {
 								fill			: "#000",
 								stroke			: "rgba(0,0,0,0)",
@@ -584,13 +727,13 @@
 					s.click( function () {
 							sw = this.attr( "stroke-width" );
 							if ( sw == 0 ) {
-								if ( picker.attr( "fill" ) == "none" ) picker.attr( { fill: self.RB.options.fill } );
+								if ( picker.attr( "fill" ) == "none" ) picker.attr( { fill: self._board.options.fill } );
 							} else {
 								sw = sw == 1 ? 1 : sw*2;
 							}
 							picker.attr( { "stroke-width": sw } );
 						} );
-					self.panel.push( s );
+					self._panel.push( s );
 				} ) ( "r" + angle + " " + ( w/2 ) + " " + ( h/2 ), color, width );
 				angle += 30;
 				width -= 4;
@@ -601,14 +744,14 @@
 				}
 			} 
  
-		// Cancel Button
-			var cancel_back = self.paper.circle( ( w/2 ) - 90, ( h/2 ) + 90, 16 ).attr( {
+			// Cancel Button
+			var cancel_back = self._paper.circle( ( w/2 ) - 90, ( h/2 ) + 90, 16 ).attr( {
 				fill	: "rgba(0,0,0,0)",
 				stroke	: "none"
 			} );
-			var s = self.paper.set();
+			var s = self._paper.set();
 			s.push( cancel_back );
-			s.push( self.paper.path( "M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" )
+			s.push( self._paper.path( "M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" )
 				.attr( {
 					fill		: "#F00",
 					stroke		: "none",
@@ -626,19 +769,19 @@
 				)
 				.click( function () {
 					self.hide();
-					self.RB.canvas.container.mousemove( InitBoardEvents( self.RB.canvas.container ) );
-					self.RB.canvas.container.unbind( "mousemove" );
+					self._board.canvas._container.mousemove( InitBoardEvents( self._board.canvas._container ) );
+					self._board.canvas._container.unbind( "mousemove" );
 				} );
-			self.panel.push( s );
+			self._panel.push( s );
 
-		// OK Button
-			var ok_back = self.paper.circle( ( w/2 ) + 90, ( h/2 ) + 90, 16 ).attr( {
+			// OK Button
+			var ok_back = self._paper.circle( ( w/2 ) + 90, ( h/2 ) + 90, 16 ).attr( {
 				fill	: "rgba(0,0,0,0)",
 				stroke	: "none"
 			} );
-			var s = self.paper.set();
+			var s = self._paper.set();
 			s.push( ok_back );
-			s.push( self.paper.path( "M2.379,14.729 5.208,11.899 12.958,19.648 25.877,6.733 28.707,9.561 12.958,25.308z" )
+			s.push( self._paper.path( "M2.379,14.729 5.208,11.899 12.958,19.648 25.877,6.733 28.707,9.561 12.958,25.308z" )
 				.attr( {
 					fill		: "#0F0",
 					stroke		: "none",
@@ -654,24 +797,28 @@
 					}
 				)
 				.click( function () {
-					self.RB.options.stroke		= picker.attr( "stroke" );
-					self.RB.options.fill			= picker.attr( "fill" );
-					self.RB.options.strokeWidth	= picker.attr( "stroke-width" );
+					self._board.options.stroke		= picker.attr( "stroke" );
+					self._board.options.fill		= picker.attr( "fill" );
+					self._board.options.strokeWidth	= picker.attr( "stroke-width" );
 					self.hide();
-					self.RB.canvas.container.mousemove( InitBoardEvents( self.RB.canvas.container ) );
-					self.RB.canvas.container.unbind( "mousemove" );
+					self._board.canvas._container.mousemove( InitBoardEvents( self._board.canvas._container ) );
+					self._board.canvas._container.unbind( "mousemove" );
 				} );
-			self.panel.push( s );
-			self.panel.attr( { cursor: "pointer" } );
+			self._panel.push( s );
+			self._panel.attr( { cursor: "pointer" } );
 
-			$( self.container ).show();
+			$( self._container ).show();
+
+			return self;
 		},
 
 		hide: function () {
 			var self = this;
 
-			$( self.container ).hide();
-			self.paper.clear();
+			$( self._container ).hide();
+			self._paper.clear();
+
+			return self;
 		}
 	};
 
@@ -687,8 +834,8 @@
 		init: function ( options, elem ) {
 			var self = this;
 
-			self.version = "1.0.0";
-			self.UUID = Raphael.createUUID();
+			self._version = "1.0.1";
+			self._UUID = Raphael.createUUID();
 
 			self.elem = elem;
 			self.$elem = $( elem );
@@ -735,6 +882,7 @@
 			}
 
 			// The Toolbar
+			// TODO: Move to external DIV and CSS
 			if ( self.options.showToolBar ) {
 				self.$elem.append( "<div id='" + toolBarContainer + "'/>" );
 				self.toolBar = ToolBar( self, toolBarContainer );
@@ -743,13 +891,13 @@
 			// The Canvas
 			self.$elem.append( "<div id='" + canvasContainer + "'/>" );
 			self.canvas = Canvas( self, canvasContainer );
-			self.paper = self.canvas.paper;
+			self.paper = self.canvas.paper();
 
 			self.shapes = [];	// list of all drawn objects
 			self.undoBuffer = [];	// undo buffer, contains all actions
 			self.redoBuffer = [];	// redo buffer, contains all undone actions
 
-			self.setMode( "pen" );	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+			self.mode( "pen" );	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 
 			// The Attributes Panel
 			self.$elem.append( "<div id='" + attributesPanelContainer + "'/>" );
@@ -759,13 +907,20 @@
 			self.mouseDownX = 0;
 			self.mouseDownY = 0;
 
-			self.canvas.container.mouseenter( OnMouseEnter );
+			self.canvas._container.mouseenter( OnMouseEnter );
+
+			return self;
 		},	// init:
 
-		/*
-		// PUBLIC PROPERTIES
-		*/
-		// Dimensions
+		// Properties
+		version: function () {
+			return this._version;
+		},
+
+		UUID: function () {
+			return this._UUID;
+		},
+
 		left: function () {
 			return this.$elem.offset().left;
 		},
@@ -782,10 +937,19 @@
 			return this.$elem.height();
 		},
 
-		/*
-		// PUBLIC METHODS
-		*/
-		// Event handling
+		isEnabled: function () {
+			return this.options.editable;
+		},
+
+		canUndo: function () {
+			return ( this.undoBuffer.length > 0 );
+		},
+
+		canRedo: function () {
+			return ( this.redoBuffer.length > 0 );
+		},
+
+		// Event handling methods
 		on: function ( eventType, callback ) {
 			self = this;
 
@@ -794,8 +958,8 @@
 					self.eventHandlers[ eventType ] = callback;
 					return false;
 				}
-			} );
-			// Enable chaining
+			});
+
 			return self;
 		},
 
@@ -807,52 +971,58 @@
 					self.eventHandlers[ eventType ] = null;
 					return false;
 				}
-			} );
-			// Enable chaining
+			});
+
 			return self;
 		},
 
 		// Editing methods
-		enabled: function ( enable ) {
+		enable: function () {
 			var self = this;
 
-			self.options.editable = enable;
+			self.options.editable = true;
 			if ( self.options.showToolBar ) {
-				self.toolBar.enabled( enable );
-				if ( enable ) {
-					self.toolBar.button( self.getMode() ).select( true );
-				}
+				self.toolBar.enable();
 			}
 
-			// Enable chaining
 			return self;
 		},
 
-		setMode: function ( mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+		disable: function () {
 			var self = this;
 
-			if ( EventHandler( self, "before_mode_change" ) ) {
-				ResetModeEvents( self );
-				self.mode = mode;
-				if ( self.options.editable ) {
-					if ( self.options.showToolBar ) {
-						self.toolBar.deselectAll();
-						self.toolBar.button( mode ).select( true );
-					}
-				}
-				SetModeEvents( self );
+			self.canvas._container.unbind( "mouseenter" );
+			self.elem.removeClasses( "cursor-*" );
+			self.options.editable = false;
+			if ( self.options.showToolBar ) {
+				self.toolBar.disable();
 			}
-			EventHandler( self, "after_mode_change" );
 
-			// Enable chaining
 			return self;
 		},
 
-		getMode: function () {
-			return this.mode;
+		mode: function ( mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+			var self = this;
+
+			if ( mode !== undefined ) {
+				if ( EventHandler( self, "before_mode_change" ) ) {
+					ResetModeEvents( self );
+					self._mode = mode;
+					if ( self.options.editable ) {
+						if ( self.options.showToolBar ) {
+							self.toolBar.deselectAll();
+							self.toolBar.button( self._mode ).select();
+						}
+					}
+					SetModeEvents( self );
+				}
+				EventHandler( self, "after_mode_change" );
+			}
+
+			return self._mode;
 		},
 
-		getById: function ( id ) {
+		element: function ( id ) {
 			var self = this;
 			var shape;
 
@@ -862,12 +1032,13 @@
 					return false;
 				}
 			} );
+
 			return shape;
 		},
 
 		move: function ( id, x, y ) {
 			var self = this;
-			var shape = self.getById( id );
+			var shape = self.element( id );
 			var animation = self.options.animation;
 
 			if ( shape ) {
@@ -878,20 +1049,21 @@
 					switch( shape.type ) {
 						case "path":
 							var animationParams = {
-								transform: "t" + ( parseInt( shape.ox ) + parseInt( dx ) ) + "," + ( parseInt( shape.oy ) + parseInt( dy ) )
+								transform: "t" + ( parseInt( shape.ox ) + parseInt( dx ) ) +
+											"," + ( parseInt( shape.oy ) + parseInt( dy ) )
 							}
 							break;
 						case "circle":
 						case "ellipse":
 							var animationParams = {
-								cx	: shape.ox + dx,
-								cy	: shape.oy + dy
+								cx: shape.ox + dx,
+								cy: shape.oy + dy
 							};
 							break;
 						default:
 							var animationParams = {
-								x	: shape.ox + dx,
-								y	: shape.oy + dy
+								x: shape.ox + dx,
+								y: shape.oy + dy
 							};
 					}
 					shape.animate( Raphael.animation(
@@ -903,6 +1075,8 @@
 				UpdateDrag( self, shape, dx, dy );
 				PushToBuffer( self, "move", shape );
 			}
+
+			return shape;
 		},
 
 		line: function ( x, y, dx, dy ) {
@@ -917,6 +1091,7 @@
 
 				return shape;
 			}
+
 			return null;
 		},
 
@@ -932,6 +1107,7 @@
 
 				return shape;
 			}
+
 			return null;
 		},
 
@@ -946,6 +1122,7 @@
 
 				return shape;
 			}
+
 			return null;
 		},
 
@@ -961,6 +1138,7 @@
 
 				return shape;
 			}
+
 			return null;
 		},
 
@@ -976,6 +1154,7 @@
 
 				return shape;
 			}
+
 			return null;
 		},
 
@@ -1004,6 +1183,7 @@
 		cut: function ( id ) {
 			var self = this;
 			var shapes = self.shapes;
+			var isCut = false;
 
 			if ( shapes.length > 0 ) {
 				for ( var i=0;i<shapes.length;i++ ) {
@@ -1011,10 +1191,13 @@
 						PushToBuffer( self, "cut", shapes[i] );
 						shapes[i].remove();
 						shapes.splice( i, 1 );
+						isCut = true;
 						break;
 					}
 				}
 			}
+
+			return isCut;
 		},
 
 		toJSON: function ( id, callback ) {
@@ -1031,7 +1214,7 @@
 					attrs		: el.attrs,
 					transform	: el.matrix.toTransformString(),
 					id			: el.id
-				} );
+				});
 			}
 
 			return JSON.stringify( elements );
@@ -1056,10 +1239,6 @@
 					PushToBuffer( self, json[i].command, shape );
 				}
 			}
-		},
-
-		canUndo: function () {
-			return ( this.undoBuffer.length > 0 );
 		},
 
 		undo: function () {
@@ -1121,13 +1300,12 @@
 					case "clear":
 						break;
 					default:
-						self.setMode( mode );
+						self.mode( mode );
 						SetModeEvents( self );
 				}
 			}
 			self.indicateUndoRedo();
 
-			// Enable chaining
 			return self;
 		},
 
@@ -1136,10 +1314,8 @@
 
 			self.undoBuffer = [];
 			self.indicateUndoRedo();
-		},
 
-		canRedo: function () {
-			return ( this.redoBuffer.length > 0 );
+			return self;
 		},
 
 		redo: function () {
@@ -1190,13 +1366,12 @@
 					case "clear":
 						break;
 					default:
-						self.setMode( mode );
+						self.mode( mode );
 						SetModeEvents( self );
 				}
 			}
 			self.indicateUndoRedo();
 
-			// Enable chaining
 			return self;
 		},
 
@@ -1205,6 +1380,8 @@
 
 			self.redoBuffer = [];
 			self.indicateUndoRedo();
+
+			return self;
 		},
 
 		indicateUndoRedo: function () {
@@ -1215,19 +1392,23 @@
 				var redoButton = self.toolBar.button( "redo" );
 
 				if ( self.canUndo() ) {
-					undoButton.activeIcon().path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
+					undoButton.activeIcon()._path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
+					undoButton.enable();
 				} else {
-					undoButton.activeIcon().path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+					undoButton.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+					undoButton.disable();
 				}
-				undoButton.enabled( self.canUndo() );
 
 				if ( self.canRedo() ) {
-					redoButton.activeIcon().path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
+					redoButton.activeIcon()._path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
+					redoButton.enable();
 				} else {
-					redoButton.activeIcon().path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+					redoButton.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+					redoButton.disable();
 				}
-				redoButton.enabled( self.canRedo() );
 			}
+
+			return self;
 		},
 
 		clear: function () {
@@ -1247,7 +1428,7 @@
 				self.paper.clear();
 			}
 			self.clearRedo();
-			// Enable chaining
+
 			return self;
 		},
 
@@ -1259,6 +1440,8 @@
 			self.paper.clear();
 			self.clearUndo();
 			self.clearRedo();
+
+			return self;
 		}
 	};
 
@@ -1266,25 +1449,15 @@
 		var board = $( this ).data( "RaphBoard" );
 
 		if ( board ) {
-			if ( options ) {
+			if ( options !== undefined ) {
 				if ( typeof options === "object" ) {
 					// Set options
 					board.options = $.extend( {}, $.fn.RaphBoard.options, options );
 				} else if ( typeof options === "string" ) {
-					// Execute command
-					switch( options ) {
-						case "options":
-							if ( argument ) {
-								return board.options[ argument ];
-							} else {
-								return board.options;
-							}
-							break;
-						default:
-							return board;
-					}
+					// Set options
+					board.options = $.extend( {}, $.fn.RaphBoard.options, { options: argument } );
 				}
-			} else {
+
 				return board;
 			}
 		} else {
@@ -1299,6 +1472,9 @@
 	};
 
 	$.fn.RaphBoard.options = {
+		/*
+		// See http://raphaeljs.com/reference.html#Element.attr for more info
+		*/
 		editable		: true,										// allow editing
 		showToolBar		: true,										// show/hide toolbar
 		fill			: "#FFF",									// white
@@ -1310,7 +1486,15 @@
 		fontSize		: 12,
 		textAnchor		: "start",									// "start|middle|right"
 		animation		: { params: {}, ms: 100, easing: "<>" }		// Default animation to be applied to "move|undo|redo"
-	};																// set to null if no animation is desired
+																	// set to null if no animation is desired
+	};
+
+	$.fn.removeClasses = function ( mask ) {
+		return this.removeClass( function ( index, cls ) {
+			var re = mask.replace( /\*/g, '\\S+' );
+			return ( cls.match( new RegExp( '\\b' + re + '', 'g' )) || [] ).join( ' ' );
+		});
+	};
 
 	// Editing Events Functions
 	function SetModeEvents( self ) {
@@ -1319,7 +1503,7 @@
 
 			for ( var i=0;i<shapes.length;i++ ) {
 				var shape = shapes[i];
-				switch( self.mode ) {
+				switch( self._mode ) {
 					case "move":
 						ResetShapeEvents( shape );
 						shape.drag( OnDrag, OnDragStart, OnDragEnd );
@@ -1519,7 +1703,7 @@
 		var self = elem.parent().data( "RaphBoard" );
 		var shapes = self.shapes;
 
-		switch( self.mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+		switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 			case "move":
 			case "cut":
 				// elem.attr( "style", "cursor: pointer;" );
@@ -1536,7 +1720,7 @@
 
 		elem.unbind( "mouseenter" )
 			.mouseleave( OnMouseLeave );
-		if ( self.mode != "move" && self.mode != "cut" ) elem.mousedown( OnMouseDown );
+		if ( self._mode != "move" && self._mode != "cut" ) elem.mousedown( OnMouseDown );
 	}
 
 	function EventHandler( self, eventType ) {
@@ -1565,11 +1749,11 @@
 		var self = elem.parent().data( "RaphBoard" );
 
 		self.mouseDownX = e.pageX - self.left();
-		self.mouseDownY = e.pageY - self.top() - ( self.options.showToolBar ? self.toolBar.height : 0 );
+		self.mouseDownY = e.pageY - self.top() - ( self.options.showToolBar ? self.toolBar.height() : 0 );
 
 		if ( EventHandler( self, "before_start" ) ) {
 			var shapes = self.shapes;
-			switch( self.mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+			switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 				case "pen":
 					shapes.push( StartLine( self, self.mouseDownX, self.mouseDownY ) );
 					break;
@@ -1597,7 +1781,7 @@
 
 		EventHandler( self, "after_start" );
 
-		if ( self.mode != "move" && self.mode != "text" && self.mode != "cut" ) {
+		if ( self._mode != "move" && self._mode != "text" && self._mode != "cut" ) {
 			elem.mousemove( OnMouseMove )
 				.mouseup( OnMouseUp );
 		}
@@ -1611,12 +1795,12 @@
 			var shape = self.shapes[ self.shapes.length - 1 ];
 
 			var moveX = e.pageX - self.left();
-			var moveY = e.pageY - self.top() - ( self.options.showToolBar ? self.toolBar.height : 0 );
+			var moveY = e.pageY - self.top() - ( self.options.showToolBar ? self.toolBar.height() : 0 );
 
 			var width = moveX - self.mouseDownX;
 			var height = moveY - self.mouseDownY;
 
-			switch( self.mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+			switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 				case "pen":
 					shape.attr( "path", shape.attr( "path" ) + "L" + moveX + "," + moveY );
 					break;
@@ -1654,7 +1838,7 @@
 		var self = elem.parent().data( "RaphBoard" );
 
 		if ( EventHandler( self, "before_end" ) ) {
-			if ( self.mode != "move" && self.mode != "text" && self.mode != "cut" ) {
+			if ( self._mode != "move" && self._mode != "text" && self._mode != "cut" ) {
 				var shapes = self.shapes;
 				elem.unbind( "mouseup" )
 					.unbind( "mousemove" );
@@ -1665,7 +1849,7 @@
 					shape.remove();
 				} else {
 					shapes.push( shape );
-					PushToBuffer( self, self.mode, shape );
+					PushToBuffer( self, self._mode, shape );
 				}
 			}
 		}
@@ -1678,7 +1862,7 @@
 		elem.unbind( "mouseleave" )
 			.removeClass( "cursor-*" );
 		var self = elem.parent().data( "RaphBoard" );
-		if ( self.mode != "move" && self.mode != "cut" ) elem.unbind( "mousedown" );
+		if ( self._mode != "move" && self._mode != "cut" ) elem.unbind( "mousedown" );
 
 		elem.mouseenter( OnMouseEnter );
 	}

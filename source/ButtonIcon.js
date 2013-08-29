@@ -1,39 +1,51 @@
 	var _buttonIcon = {
 		init: function ( button, path, attr ) {
 			var self = this;
-			self.button = button;
 
-			self.path = button.toolBar.paper.path( path ).attr( attr );
+			self._button = button;
+			self._path = button._toolBar._paper.path( path ).attr( attr );
+
+			return self;
+		},
+
+		// Properties
+		isGlowing: function () {
+			return ( typeof this._path._glow === "object" );
+		},
+
+		isVisible: function () {
+			return this._path.node.style.display !== "none";
+		},
+
+		// Methods
+		glow: function ( state ) {
+			var self = this;
+
+			if ( state ) {
+				self._path._glow = self._path.glow();
+			} else {
+				if ( self.isGlowing() ) {
+					self._path._glow.remove();
+				}
+			}
 
 			return self;
 		},
 
 		show: function () {
-			this.path.show();
-		},
+			var self = this;
 
-		isVisible: function () {
-			return this.path.node.style.display !== "none";
+			self._path.show();
+
+			return self;
 		},
 
 		hide: function () {
-			this.path.hide();
-		},
-
-		isGlowing: function () {
-			return ( typeof this.path.g === "object" );
-		},
-
-		glow: function ( state ) {
 			var self = this;
 
-			if ( state ) {
-				self.path.g = self.path.glow();
-			} else {
-				if ( self.isGlowing() ) {
-					self.path.g.remove();
-				}
-			}
+			self._path.hide();
+
+			return self;
 		}
 	};
 

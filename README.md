@@ -1,4 +1,6 @@
-# RaphBoard: Cross-browser blackboard based on Raphaël. 
+# RaphBoard
+
+## Cross-browser drawing board based on [Raphaël](http://raphaeljs.com/). 
 
 Visit the library [website](http://MiroHibler.github.com/RaphBoard/) for more information.
 
@@ -17,7 +19,7 @@ Visit the library [website](http://MiroHibler.github.com/RaphBoard/) for more in
 At the moment there are 2 milestones:
 
 ### v1.1.0
-Adopting [eve](https://github.com/adobe-webplatform/eve) event handler.
+Move shape drawing functions to separate objects to enable adding new (user-defined) ones.
 ### v1.2.0
 Enabling touch events.
 
@@ -31,7 +33,7 @@ After adding your changes, execute `grunt dist`, the minified version will be cr
 
 First search for similar issues to make sure you don't repeat an existing one.
 
-Then please create a fiddle ([boilerplate](http://jsfiddle.net/MZwAW/)) recreating the bug so we can find out what the problem is more easily (or be a hero and find it yourself and send a pull request!). You can also use the [playground](http://MiroHibler.github.com/RaphBoard/playground.html) to reproduce your issues.
+Then please create a fiddle ([boilerplate](http://jsfiddle.net/MZwAW/)) recreating the bug so we can find out what the problem is more easily (or be a hero and find it yourself and send a pull request!). You can also use the [playground](http://MiroHibler.github.io/RaphBoard/playground.html) to reproduce your issues.
 
 Remember to add all the info that can be useful such as
 
@@ -39,6 +41,14 @@ Remember to add all the info that can be useful such as
 * steps to reproduce
 * browser and its version
 * any suggestion of what do you think the problem could be
+
+## Changelog
+
+### 1.0.1
+ * Various bug fixes.
+
+### 1.0.0
+ * Initial release (Duh.)
 
 ## Copyright and license
 

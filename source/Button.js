@@ -2,62 +2,143 @@
 		init: function ( toolBar, name, attr ) {
 			var self = this;
 
-			self.icons = [];
-			self.name = name;
-			self.toolBar = toolBar;
-			self.isEnabled = true;
-			self.isSelected = false;
+			self._toolBar = toolBar;
+			self._name = name;
+			self._icons = [];
+			self._isEnabled = true;
+			self._isSelected = false;
 
-			var p = toolBar.paper;
-			self.set = p.set();
-			self.paths = p.set();
-			self.set.push( self.paths );
-			self.rect = p.rect( 0, 0, 0, 0 ).attr( attr );
-			self.set.push( self.rect );
+			var _p = toolBar._paper;
+			self._set = _p.set();
+			self._paths = _p.set();
+			self._set.push( self._paths );
+			self._rect = _p.rect( 0, 0, 0, 0 ).attr( attr );
+			self._set.push( self._rect );
 
 			return self;
 		},
 
-		addIcon: function ( path, attr ) {
-			var self = this;
-
-			var newIcon = ButtonIcon( self, path, attr );
-			self.icons.push( newIcon );
-			self.paths.push( newIcon.path );
-			self.showIcon( self.icons.length - 1 );
-			self.rect.toFront();
-
-			return newIcon;
+		// Properties
+		isEnabled: function () {
+			return this._isEnabled;
 		},
 
-		showIcon: function ( index ) {
+		isVisible: function () {
+			return this._isVisible;
+		},
+
+		isSelected: function () {
+			return this._isSelected;
+		},
+
+		name: function ( newName ) {
 			var self = this;
 
-			for ( ndx in self.icons ) {
-				self.icons[ndx].hide();
-			};
-			self.icons[index].show();
+			if ( newName !== undefined ) {
+				self._name = newName;
+			}
+
+			return self._name;
+		},
+
+		attr: function ( newAttr ) {
+			var self = this;
+
+			if ( typeof newAttr === "Object" ) {
+				self._rect.attr( $.extend( {}, self._rect.attr(), newAttr ) );
+			}
+
+			return self._rect.attr();
 		},
 
 		activeIcon: function () {
 			var self = this;
-			var activeIcon;
+			var _activeIcon;
 
-			for ( ndx in self.icons ) {
-				if ( self.icons[ndx].isVisible ) {
-					activeIcon = self.icons[ndx];
+			for ( ndx in self._icons ) {
+				if ( self._icons[ndx].isVisible() ) {
+					_activeIcon = self._icons[ndx];
 					break;
 				}
 			};
 
-			return activeIcon;
+			return _activeIcon;
+		},
+
+		hover: function ( mouseIn, mouseOut ) {
+			var self = this;
+
+			self._mouseIn = mouseIn;
+			self._mouseOut = mouseOut;
+			self._rect.hover( function () {
+				if ( self._isEnabled ) self._mouseIn();
+			}, function () {
+				if ( self._isEnabled ) self._mouseOut();
+			});
+
+			return self;
+		},
+
+		mouseDown: function ( mouseDown ) {
+			var self = this;
+
+			self._mouseDown = mouseDown;
+			self._rect.mousedown( function () {
+				if ( self._isEnabled ) self._mouseDown();
+			});
+
+			return self;
+		},
+
+		mouseUp: function ( mouseUp ) {
+			var self = this;
+
+			self._mouseUp = mouseUp;
+			self._rect.mouseup( function () {
+				if ( self._isEnabled ) self._mouseUp();
+			} );
+
+			return self;
+		},
+
+		// Methods
+		addIcon: function ( icon ) {
+			var self = this;
+
+			self._icons.push( icon );
+			self._paths.push( icon._path );
+			self.showIcon( self._icons.length - 1 );
+			self._rect.toFront();
+
+			return self;
+		},
+
+		insertIcon: function ( index, icon ) {
+			var self = this;
+
+			self._icons.splice( index, 1, icon );
+
+			return self;
 		},
 
 		removeIcon: function ( index ) {
 			var self = this;
 
-			self.icons[index].path.remove();
-			self.icons.splice( index, 1 );
+			self._icons[index]._path.remove();
+			self._icons.splice( index, 1 );
+
+			return self;
+		},
+
+		showIcon: function ( index ) {
+			var self = this;
+
+			for ( ndx in self._icons ) {
+				self._icons[ndx].hide();
+			};
+			self._icons[index].show();
+
+			return self;
 		},
 
 		highlight: function ( state, glow  ) {
@@ -65,53 +146,48 @@
 
 			if ( state ) {
 				self.activeIcon().glow( glow );
-				self.activeIcon().path.attr( { fill: "90-#6B9DF4-#4575ED", stroke: "none" } );
+				self.activeIcon()._path.attr( { fill: "90-#6B9DF4-#4575ED", stroke: "none" } );
 			} else {
 				self.activeIcon().glow( false );
-				self.activeIcon().path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+				self.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
 			}
+
+			return self;
 		},
 
-		hover: function ( mouseIn, mouseOut ) {
+		enable: function () {
 			var self = this;
 
-			self.mouseIn = mouseIn;
-			self.mouseOut = mouseOut;
-			self.rect.hover( function () {
-				if ( self.isEnabled ) self.mouseIn();
-			}, function () {
-				if ( self.isEnabled ) self.mouseOut();
-			});
+			self._isEnabled = true;
+
+			return self;
 		},
 
-		mouseDown: function ( mouseDown ) {
+		disable: function () {
 			var self = this;
 
-			self.mouseDown = mouseDown;
-			self.rect.mousedown( function () {
-				if ( self.isEnabled ) self.mouseDown();
-			});
+			self._isEnabled = false;
+
+			return self;
 		},
 
-		mouseUp: function ( mouseUp ) {
+		select: function () {
 			var self = this;
 
-			self.mouseUp = mouseUp;
-			self.rect.mouseup( function () {
-				if ( self.isEnabled ) self.mouseUp();
-			} );
+			self._isSelected = true;
+			self.highlight( true, true );
+
+			return self;
 		},
 
-		select: function ( state ) {
+		deselect: function () {
 			var self = this;
 
-			self.isSelected = state;
-			self.highlight( state, state );
-		},
+			self._isSelected = false;
+			self.highlight( false, false );
 
-		enabled: function ( enable ) {
-			this.isEnabled = enable;
-		} 
+			return self;
+		}
 	};
 
 	function Button ( toolBar, name, attr ) {
