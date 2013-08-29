@@ -1,6 +1,5 @@
 # compiled
 build/component
-build/out/demos
 dist
 
 # local demo & test
