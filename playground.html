@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="chrome=1">
+		<title>RaphBoard · Playground</title>
+		<link rel="stylesheet" href="stylesheets/styles.css">
+		<link rel="stylesheet" href="stylesheets/pygment_trac.css">
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="javascripts/raphael-min.js"></script>
+		<script src="javascripts/jquery.raphboard.min.js"></script>
+		<script src="javascripts/respond.js"></script>
+		<script src="javascripts/logo.js"></script>
+		<!--[if lt IE 9]>
+		<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<!--[if lt IE 8]>
+		<link rel="stylesheet" href="stylesheets/ie.css">
+		<![endif]-->
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	</head>
+	<body>
+		<div id="header">
+			<nav>
+				<li class="fork"><a href="https://github.com/MiroHibler/RaphBoard" target="_new">View On GitHub</a></li>
+				<li class="docs"><a href="./docs.html" target="_new">Docs</a></li>
+				<li class="forum"><a href="https://groups.google.com/d/forum/raphboard" target="_new">Forum</a></li>
+				<li class="downloads"><a href="./index.html">Home</a></li>
+			</nav>
+		</div><!-- end header -->
+
+		<div class="wrapper">
+
+			<section>
+				<div id="logo"></div>
+				<div id="title">
+					<h1>RaphBoard · Playground</h1>
+					<p>Cross-browser drawing board based on<br/><a href="http://raphaeljs.com">Raphaël JavaScript Vector Library</a></p>
+					<div id="board"></div>
+				</div>
+
+				<h3>Playtime!</h3>
+
+				<p>Type or paste a command (RB is RaphBoard object):</p>
+
+				<div><textarea id="code" style="width: 100%;">RB.text( 130, 160, "RaphBoard v"+RB.version(), 50 ).attr( { fill: "#ff0000", stroke: "#00ff00" } );</textarea></div>
+				<div style="width: 100%; text-align: center; cursor: pointer;">
+					<div id="bazinga"><a id="run">BAZINGA!</a></div>
+				</div>
+
+				<p>Yeah, I know - überkewl.</p>
+
+				<br>
+				<h3>Hickups?</h3>
+
+				<p>How about <a href="http://xkcd.com/293/" target="_new">RTFM</a> anyway? <a href="./docs.html" target="_new">Duh</a>.</p>
+
+				<div id="footer">
+					<hr>
+					<span class="credits left">Project maintained by <a href="https://github.com/MiroHibler" class="user-mention" target="new">@MiroHibler</a></span>
+					<span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham" target="new">@mattgraham</a></span>
+				</div>
+
+			</section>
+
+		</div>
+		<!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		<script type="text/javascript">
+			drawLogo( "logo" );
+			jQuery( document ).ready( function( $ ) {
+				var RB = $( "#board" ).RaphBoard();
+				( document.getElementById( "run" ).onclick = function () {
+					try {
+						( new Function( "RB", "window", "document", document.getElementById( "code" ).value ) ).call( RB, RB );
+					} catch ( e ) {
+						alert( e.message || e );
+					}
+				} )();
+			});
+		</script>
+		<script type="text/javascript">
+			var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+			document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+			try {
+				var pageTracker = _gat._getTracker("UA-38976220-1");
+				pageTracker._trackPageview();
+			} catch(err) {}
+		</script>
+	</body>
+</html>

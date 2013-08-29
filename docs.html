@@ -1,0 +1,865 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="chrome=1">
+		<title>RaphBoard · Documentation</title>
+		<link rel="stylesheet" href="stylesheets/styles.css">
+		<link rel="stylesheet" href="stylesheets/pygment_trac.css">
+		<link rel="stylesheet" href="stylesheets/raphboard-docs/jquery-ui-1.10.1.custom.min.css">
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="javascripts/raphael-min.js"></script>
+		<script src="javascripts/jquery.raphboard.min.js"></script>
+		<script src="javascripts/jquery-ui-1.10.1.custom.min.js"></script>
+		<script src="javascripts/respond.js"></script>
+		<script src="javascripts/logo.js"></script>
+		<!--[if lt IE 9]>
+		<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		<!--[if lt IE 8]>
+		<link rel="stylesheet" href="stylesheets/ie.css">
+		<![endif]-->
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	</head>
+	<body>
+		<div id="header">
+			<nav>
+				<li class="fork"><a href="https://github.com/MiroHibler/RaphBoard" target="_new">View On GitHub</a></li>
+				<li class="play"><a href="./playground.html">Play</a></li>
+				<li class="forum"><a href="https://groups.google.com/d/forum/raphboard" target="_new">Forum</a></li>
+				<li class="downloads"><a href="./index.html">Home</a></li>
+			</nav>
+		</div><!-- end header -->
+
+		<div class="wrapper">
+
+			<section>
+				<div id="logo"></div>
+				<div id="title" style="margin-bottom: 0;">
+					<h1>RaphBoard · Documentation</h1>
+					<p>Cross-browser drawing board based on<br/><a href="http://raphaeljs.com">Raphaël JavaScript Vector Library</a></p>
+					<hr>
+				</div>
+
+				<h2>So, you wanna know more, oh you nosey you?</h2>
+
+				<p>Okay, here's a quick API Reference. Open this window while you're playing with yourself in the <a href="./playground.html" target="_new">sandbox</a>.</p>
+				<p>And while at it, check the <a href="http://raphaeljs.com/reference.html" target="_new">Raphaël's documentation</a> too.</p>
+
+				<h3>Basic stuff</h3>
+				<p>Here's how to start with the RaphBoard:</p>
+				<pre><code>// v1.0.1
+// Attach RaphBoard to the container
+$( document ).ready( function( $ ) {
+	$( "#board" ).RaphBoard();
+
+	// It can be invoked with options too:
+	$( "#board" ).RaphBoard( { "showToolBar": false } );
+});
+
+// RaphBoard will take its container's dimensions, so don't hesitate
+// to show some style (put this in the &lt;head&gt; section of your page)
+&lt;style&gt;
+	#board {
+		width: 650px;
+		height: 380px;
+		background-color: black;
+	}
+&lt;/style&gt;</code></pre>
+				<br>
+				<h3>API browser</span></h3>
+				<div class="tabs">
+					<ul>
+						<li><a href="#tabs-1">RaphBoard</a></li>
+						<li><a href="#tabs-2">Canvas</a></li>
+						<li><a href="#tabs-3">AttributesPanel</a></li>
+						<li><a href="#tabs-4">ToolBar</a></li>
+						<li><a href="#tabs-5">Button</a></li>
+						<li><a href="#tabs-6">ButtonIcon</a></li>
+					</ul>
+					<div id="tabs-1">
+						<h3>RaphBoard Object</h3>
+						<p>The main object.</p>
+						<div class="tabs">
+							<ul>
+								<li><a href="#raph-tabs-1">Options</a></li>
+								<li><a href="#raph-tabs-2">Events</a></li>
+								<li><a href="#raph-tabs-3">Properties</a></li>
+								<li><a href="#raph-tabs-4">Methods</a></li>
+							</ul>
+							<div id="raph-tabs-1">
+								<h3>Set RaphBoard's options (defaults)</h3>
+								<p>Parameter(s): Object with key/value pairs or single key/value pair</p>
+<pre><code>// Set global options for every new RaphBoard:
+$.RaphBoard.options( { "showToolBar": false } );
+
+// Set options during initialization:
+var board = $( "#board" ).RaphBoard( { "stroke": "#777" } );
+
+// Set options after RaphBoard initialization:
+board.options( { "strokeWidth": 6 } );
+board.options( "lineCap", "round" );
+</code></pre>
+								<p>Default options and values:</p>
+								<div class="accordion">
+									<h3>editable: true</h3>
+									<div>
+										<h3>Enable or disable editing</h3>
+										<p>May be useful if you want "view only" mode and you load the content via .fromJSON() method or using the board in "non-interactive" mode.</p>
+									</div>
+									<h3>showToolBar: true</h3>
+									<div>
+										<h3>Instructs RaphBoard to not render the ToolBar</h3>
+										<p>May be useful if you want to create your own toolbar or use the board in "non-interactive" mode.</p>
+									</div>
+									<h3>fill: "#FFF"</h3>
+									<div>
+										<h3>Default fill attribute for shapes</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>stroke: "#FFF"</h3>
+									<div>
+										<h3>Default stroke color</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>strokeWidth: 1</h3>
+									<div>
+										<h3>Default stroke width</h3>
+										<p>RaphBoard uses 4 default strokes that a user can choose from in the AttributesPanel:</p>
+										<ul>
+											<li>1px - default</li>
+											<li>4px - "medium"</li>
+											<li>8px - "big"</li>
+											<li>16px - "huge"</li>
+										</ul>
+										<p>If you set some other value here, it will be overridden by user's selection in AttributesPanel.</p>
+										<p>Therefore, it only makes sense in "non-interactive" mode.</p>
+									</div>
+									<h3>lineCap: "round"</h3>
+									<div>
+										<h3>Default line endigs type</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>lineJoin: "round"</h3>
+									<div>
+										<h3>Default line joining type</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>arrowEnd: "classic-medium-medium"</h3>
+									<div>
+										<h3>Default arrow type-width-length attributes</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>fontSize: 12</h3>
+									<div>
+										<h3>Default text font size</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>textAnchor: "start"</h3>
+									<div>
+										<h3>Default text anchor</h3>
+										<p>Take a look at <a href="http://raphaeljs.com/reference.html#Element.attr" target="_new">Raphaël's Attributes documentation</a> for possible values.</p>
+									</div>
+									<h3>animation: { params: {}, ms: 100, easing: "&lt;&gt;" }</h3>
+									<div>
+										<h3>Default animation for "move", "undo" and "redo" events</h3>
+										<p>Set to <code>null</code> if no animation required.</p>
+										<p>Take a look at Raphaël's <a href="http://raphaeljs.com/reference.html#Animation" target="_new"> Animation documentation</a> for possible values.</p>
+									</div>
+								</div>
+							</div>
+							<div id="raph-tabs-2">
+								<h3>RaphBoard Event Handling</h3>
+								<p>RaphBoard provides "hooks" to catch interactive drawing events:</p>
+								<ul>
+									<li>before_mode_change - called before mode change procedure starts</li>
+									<li>after_mode_change - called after mode change procedure completes</li>
+									<li>before_start - called before drawing procedure starts</li>
+									<li>after_start - called after drawing procedure completes</li>
+									<li>before_change - called before drawing change procedure starts</li>
+									<li>after_change - called after drawing change procedure completes</li>
+									<li>before_end - called before drawing procedure starts</li>
+									<li>after_end - called after drawing procedure completes</li>
+									<li>before_cut - called before cut procedure starts</li>
+									<li>after_cut - called after cut procedure completes</li>
+									<li>before_undo - called before undo procedure starts</li>
+									<li>after_undo - called after undo procedure completes</li>
+									<li>before_redo - called before redo procedure starts</li>
+									<li>after_redo - called after redo procedure completes</li>
+									<li>before_clear - called before clearing procedure starts</li>
+									<li>after_clear - called after clearing procedure completes</li>
+								</ul>
+								<p>At the moment, RaphBoard does NOT use Raphaël's <a href="http://raphaeljs.com/reference.html#eve" target="_new">eve</a> event handler. It's planned for future releases.</p>
+								<p>There are two methods available:</p>
+								<div class="accordion">
+									<h3>.on( eventType, callback )</h3>
+									<div>
+										<h3>Set up event handler</h3>
+										<p>Parameter(s): String, Function</p>
+										<pre><code>RaphBoard.on( "before_cut", function () {
+	return false; // Cancel the operation
+} );</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.off( eventType )</h3>
+									<div>
+										<h3>Remove event handler</h3>
+										<p>Parameter(s): String</p>
+										<pre><code>RaphBoard.off( "before_cut" );</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+								</div>
+							</div>
+							<div id="raph-tabs-3">
+								<div class="accordion">
+									<h3>.version()</h3>
+									<div>
+										<h3>Return RaphBoard's version ( String )</h3>
+										<pre><code>RaphBoard.version();</code></pre>
+									</div>
+									<h3>.UUID()</h3>
+									<div>
+										<h3>Return RaphBoard's UUID ( String )</h3>
+										<pre><code>RaphBoard.UUID();</code></pre>
+									</div>
+									<h3>.left()</h3>
+									<div>
+										<h3>Return RaphBoard container's offset from the left ( Integer )</h3>
+										<pre><code>RaphBoard.left();</code></pre>
+									</div>
+									<h3>.top()</h3>
+									<div>
+										<h3>Return RaphBoard container's offset from the top ( Integer )</h3>
+										<pre><code>RaphBoard.top();</code></pre>
+									</div>
+									<h3>.width()</h3>
+									<div>
+										<h3>Return RaphBoard container's width ( Integer )</h3>
+										<pre><code>RaphBoard.width();</code></pre>
+									</div>
+									<h3>.height()</h3>
+									<div>
+										<h3>Return RaphBoard container's height ( Integer )</h3>
+										<pre><code>RaphBoard.height();</code></pre>
+									</div>
+									<h3>.isEnabled()</h3>
+									<div>
+										<h3>Return RaphBoard's edit status ( Boolean )</h3>
+										<pre><code>RaphBoard.isEnabled();</code></pre>
+									</div>
+									<h3>.canUndo()</h3>
+									<div>
+										<h3>Return RaphBoard undo buffer's status ( Boolean )</h3>
+										<pre><code>RaphBoard.canUndo();</code></pre>
+									</div>
+									<h3>.canRedo()</h3>
+									<div>
+										<h3>Return RaphBoard redo buffer's status ( Boolean )</h3>
+										<pre><code>RaphBoard.canRedo();</code></pre>
+									</div>
+								</div>
+							</div>
+							<div id="raph-tabs-4">
+								<div class="accordion">
+									<h3>.enable()</h3>
+									<div>
+										<h3>Enable editing</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.enable();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.disable()</h3>
+									<div>
+										<h3>Disable editing</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.disable();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.mode( mode )</h3>
+									<div>
+										<h3>SET/GET RaphBoard's editing mode ( String )</h3>
+										<p>Parameter(s): String</p>
+										<p>Trigger event(s): "before_mode_change", "after_mode_change"</p>
+										<pre><code>// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
+RaphBoard.mode( "pen" );</code></pre>
+										<p>Returns: Mode ( String )</p>
+										<p>NOTE: If called without parameter, only returns current mode and no event is triggered.</p>
+									</div>
+									<h3>.element( id )</h3>
+									<div>
+										<h3>Return RaphBoard's element by it's Id ( Integer )</h3>
+										<p>Parameter(s): Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.element( id );</code></pre>
+										<p>Returns: Element</p>
+									</div>
+									<h3>.move( id, dx, dy )</h3>
+									<div>
+										<h3>Move element</h3>
+										<p>Parameter(s): Integer, Integer, Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.move( redCircle.id, 456, 123 );</code></pre>
+										<p>Returns: Element</p>
+									</div>
+									<h3>.line( x, y, dx, dy )</h3>
+									<div>
+										<h3>Draw a line</h3>
+										<p>Parameter(s): Integer, Integer, Integer, Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.line( 0, 0, 456, 123 );</code></pre>
+										<p>Returns: Element</p>
+										<p>NOTE: Set line attributes via RaphBoard.options</p>
+									</div>
+									<h3>.arrow( x, y, dx, dy )</h3>
+									<div>
+										<h3>Draw a line with arrow end</h3>
+										<p>Parameter(s): Integer, Integer, Integer, Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.arrow( 0, 0, 456, 123 );</code></pre>
+										<p>Returns: Element</p>
+										<p>NOTE: Set arrow attributes via RaphBoard.options</p>
+									</div>
+									<h3>.circle( x, y, r )</h3>
+									<div>
+										<h3>Draw a circle</h3>
+										<p>Parameter(s): Integer, Integer, Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.circle( 456, 123, 50 );</code></pre>
+										<p>Returns: Element</p>
+										<p>NOTE: Set circle attributes via RaphBoard.options</p>
+									</div>
+									<h3>.ellipse( x, y, rx, ry )</h3>
+									<div>
+										<h3>Draw ellipse</h3>
+										<p>Parameter(s): Integer, Integer, Integer, Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.ellipse( 456, 123, 100, 50 );</code></pre>
+										<p>Returns: Element</p>
+										<p>NOTE: Set ellipse attributes via RaphBoard.options</p>
+									</div>
+									<h3>.rect( x, y, dx, dy )</h3>
+									<div>
+										<h3>Draw a rectangle</h3>
+										<p>Parameter(s): Integer, Integer, Integer, Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.rect( 456, 123, 100, 50 );</code></pre>
+										<p>Returns: Element</p>
+										<p>NOTE: Set rectangle attributes via RaphBoard.options</p>
+									</div>
+									<h3>.text( x, y, text, size )</h3>
+									<div>
+										<h3>Write a text</h3>
+										<p>Parameter(s): Integer, Integer, String, Integer</p>
+										<p>Trigger event(s): "after_end"</p>
+										<pre><code>RaphBoard.text( 456, 123, "Text!", 24 );</code></pre>
+										<p>Returns: Element</p>
+										<p>NOTE: Set text attributes via RaphBoard.options</p>
+									</div>
+									<h3>.cut( id )</h3>
+									<div>
+										<h3>Cut an element from the canvas</h3>
+										<p>Parameter(s): Integer</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.cut( redCircle.id );</code></pre>
+										<p>Returns: Boolean true if cut</p>
+									</div>
+									<h3>.toJSON( id, callback )</h3>
+									<div>
+										<h3>Return element (by its Id) as JSON string</h3>
+										<p>Parameter(s): Integer, Function to execute on element</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.toJSON( redCircle.id, null );</code></pre>
+										<p>Returns: JSON string</p>
+									</div>
+									<h3>.fromJSON( elements, callback )</h3>
+									<div>
+										<h3>Draw element(s) (as JSON object or string)</h3>
+										<p>Parameter(s): JSON object or string, Function to execute on element</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.fromJSON( jsonDrawing, null );</code></pre>
+										<p>Returns: None</p>
+										<p>NOTE: This method has not been fully tested yet.</p>
+									</div>
+									<h3>.undo()</h3>
+									<div>
+										<h3>Undo last board action</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.undo();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.clearUndo()</h3>
+									<div>
+										<h3>Clears the Undo buffer</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.clearUndo();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.redo()</h3>
+									<div>
+										<h3>Redo last undone board action</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.redo();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.clearRedo()</h3>
+									<div>
+										<h3>Clears the Redo buffer</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.clearRedo();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.indicateUndoRedo()</h3>
+									<div>
+										<h3>Indicate Undo/Redo action (if ToolBar is visible)</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.indicateUndoRedo();</code></pre>
+										<p>Returns: RaphBoard</p>
+									</div>
+									<h3>.clear()</h3>
+									<div>
+										<h3>Clear the board</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.clear();</code></pre>
+										<p>Returns: RaphBoard</p>
+										<p>NOTE: Does not clear undo/redo buffers.</p>
+									</div>
+									<h3>.flush()</h3>
+									<div>
+										<h3>Clear the board and undo/redo buffers</h3>
+										<p>Parameter(s): None</p>
+										<p>Trigger event(s): None</p>
+										<pre><code>RaphBoard.flush();</code></pre>
+										<p>Returns: RaphBoard</p>
+										<p>NOTE: Clears undo/redo buffers as well.</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tabs-2">
+						<h3>RaphBoard's canvas object.</h3>
+						<p>This is Raphaël.paper wrapper. See <a href="http://raphaeljs.com/reference.html#Paper" target="_new">Raphaël's Paper documentation</a> for more info.</p>
+						<div class="tabs">
+							<ul>
+								<li><a href="#canvas-tabs-0">Properties</a></li>
+							</ul>
+							<div id="canvas-tabs-0">
+								<div class="accordion">
+									<h3>.paper()</h3>
+									<div>
+										<h3>Return the Raphaël's paper ( Raphael.paper )</h3>
+										<pre><code>Canvas.paper();</code></pre>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tabs-3">
+						<h3>RaphBoard's drawing attributes panel object.</h3>
+						<p>The AttributesPanel contains drawing attributes - colors, line width and such.</p>
+						<div class="tabs">
+							<ul>
+								<li><a href="#attr-tabs-0">Properties</a></li>
+								<li><a href="#attr-tabs-1">Methods</a></li>
+							</ul>
+							<div id="attr-tabs-0">
+								<div class="accordion">
+									<h3>.paper()</h3>
+									<div>
+										<h3>Return the Raphaël's paper object ( Raphael.paper )</h3>
+										<pre><code>AttributesPanel.paper();</code></pre>
+									</div>
+								</div>
+							</div>
+							<div id="attr-tabs-1">
+								<div class="accordion">
+									<h3>.show()</h3>
+									<div>
+										<h3>Show Attributes Panel</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>AttributesPanel.show();</code></pre>
+										<p>Returns: AttributesPanel</p>
+										<p>NOTE: It will disable all interactions with board (toolbar and paper).</p>
+									</div>
+									<h3>.hide()</h3>
+									<div>
+										<h3>Hide Attributes Panel</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>AttributesPanel.hide();</code></pre>
+										<p>Returns: AttributesPanel</p>
+										<p>NOTE: It will re-enable all interactions with board (toolbar and paper) after .show().</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tabs-4">
+						<h3>RaphBoard's ToolBar Object</h3>
+						<p>The ToolBar can contain many buttons and they can be selectively shown or hidden, enabled or disabled. See the Button object for more info.</p>
+						<div class="tabs">
+							<ul>
+								<li><a href="#tbar-tabs-0">Properties</a></li>
+								<li><a href="#tbar-tabs-1">Methods</a></li>
+							</ul>
+							<div id="tbar-tabs-0">
+								<div class="accordion">
+									<h3>.height()</h3>
+									<div>
+										<h3>Return ToolBar's height ( Integer )</h3>
+										<pre><code>ToolBar.height();</code></pre>
+									</div>
+									<h3>.background()</h3>
+									<div>
+										<h3>Return ToolBar's background ( Raphael.paper.rect )</h3>
+										<pre><code>ToolBar.background();</code></pre>
+									</div>
+									<h3>.buttons()</h3>
+									<div>
+										<h3>Return ToolBar's buttons ( Array )</h3>
+										<pre><code>ToolBar.buttons();</code></pre>
+									</div>
+								</div>
+							</div>
+							<div id="tbar-tabs-1">
+								<div class="accordion">
+									<h3>.enable()</h3>
+									<div>
+										<h3>Enable ToolBar</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>ToolBar.enable();</code></pre>
+										<p>Returns: ToolBar</p>
+										<p>NOTE: Does not show the ToolBar, just make it responsive (ie. after .disable()).</p>
+									</div>
+									<h3>.disable()</h3>
+									<div>
+										<h3>Disable ToolBar</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>ToolBar.disable();</code></pre>
+										<p>Returns: ToolBar</p>
+										<p>NOTE: Does not hide the ToolBar, just make it unresponsive.</p>
+									</div>
+									<h3>.addButton( button )</h3>
+									<div>
+										<h3>Add button to ToolBar</h3>
+										<p>Parameter(s): Button</p>
+										<pre><code>ToolBar.addButton( button );</code></pre>
+										<p>Returns: ToolBar</p>
+									</div>
+									<h3>.insertButton( button, index )</h3>
+									<div>
+										<h3>Insert button in ToolBar at index</h3>
+										<p>Parameter(s): Button, Integer</p>
+										<pre><code>ToolBar.insertButton( button, 3 );</code></pre>
+										<p>Returns: ToolBar</p>
+									</div>
+									<h3>.removeButton( button )</h3>
+									<div>
+										<h3>Remove button from ToolBar</h3>
+										<p>Parameter(s): Button</p>
+										<pre><code>ToolBar.removeButton( button );</code></pre>
+										<p>Returns: ToolBar</p>
+									</div>
+									<h3>.button( name )</h3>
+									<div>
+										<h3>Return button referenced by it's name</h3>
+										<p>Parameter(s): String</p>
+										<pre><code>ToolBar.button( "circle" );</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.deselectAll()</h3>
+									<div>
+										<h3>Deselect all buttons in Toolbar</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>ToolBar.deselectAll();</code></pre>
+										<p>Returns: ToolBar</p>
+										<p>NOTE: Does not hide the buttons, just turns off Button's highlight &amp; glow.</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tabs-5">
+						<h3>ToolBar's Button object.</h3>
+						<p>The ToolBar can contain many buttons and they can be selectively shown, enabled or highlighted. See the ToolBar object for more info on button manipulation.</p>
+						<div class="tabs">
+							<ul>
+								<li><a href="#button-tabs-0">Properties</a></li>
+								<li><a href="#button-tabs-1">Methods</a></li>
+							</ul>
+							<div id="button-tabs-0">
+								<div class="accordion">
+									<h3>.isEnabled()</h3>
+									<div>
+										<h3>Get button's enabled status ( Boolean )</h3>
+										<pre><code>Button.isEnabled();</code></pre>
+									</div>
+									<h3>.isVisible()</h3>
+									<div>
+										<h3>Get button's visible status ( Boolean )</h3>
+										<pre><code>Button.isVisible();</code></pre>
+									</div>
+									<h3>.isSelected()</h3>
+									<div>
+										<h3>Get button's selected status ( Boolean )</h3>
+										<pre><code>Button.isSelected();</code></pre>
+									</div>
+									<h3>.name( name )</h3>
+									<div>
+										<h3>Get/set button's name ( String )</h3>
+										<pre><code>Button.name( "circle" );</code></pre>
+									</div>
+									<h3>.attr( attr )</h3>
+									<div>
+										<h3>Get/set button's attributes ( Object )</h3>
+										<pre><code>Button.attr( { "fill": "rgba( 0, 0, 0, 0 )" } );</code></pre>
+									</div>
+									<h3>.activeIcon()</h3>
+									<div>
+										<h3>Get currently active icon ( Icon )</h3>
+										<pre><code>Button.activeIcon();</code></pre>
+										<p>NOTE: Set the active icon with .showIcon() method.</p>
+									</div>
+									<h3>.hover( handler )</h3>
+									<div>
+										<h3>Set/get hover handler ( Function )</h3>
+										<pre><code>Button.hover( function () {} );</code></pre>
+									</div>
+									<h3>.mouseDown( handler )</h3>
+									<div>
+										<h3>Set/get mouseDown handler ( Function )</h3>
+										<pre><code>Button.mouseDown( function () {} );</code></pre>
+									</div>
+									<h3>.mouseUp( handler )</h3>
+									<div>
+										<h3>Set/get mouseUp handler ( Function )</h3>
+										<pre><code>Button.mouseUp( function () {} );</code></pre>
+									</div>
+								</div>
+							</div>
+							<div id="button-tabs-1">
+								<div class="accordion">
+									<h3>.addIcon( icon )</h3>
+									<div>
+										<h3>Add new Icon to the button</h3>
+										<p>Parameter(s): Icon</p>
+										<pre><code>Button.addIcon( icon );</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.insertIcon( index, icon )</h3>
+									<div>
+										<h3>Insert new Icon in button's icon library</h3>
+										<p>Parameter(s): Integer, Icon</p>
+										<pre><code>Button.insertIcon( 3, icon );</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.removeIcon( index )</h3>
+									<div>
+										<h3>Remove icon from the button</h3>
+										<p>Parameter(s): Integer</p>
+										<pre><code>Button.removeIcon( 3 );</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.showIcon( index )</h3>
+									<div>
+										<h3>Display icon in button's icon library (and hide others)</h3>
+										<p>Parameter(s): Integer</p>
+										<pre><code>Button.showIcon( 3 );</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.highlight( state, glow )</h3>
+									<div>
+										<h3>Add/remove highlight &amp; glow appearance of a button</h3>
+										<p>Parameter(s): Boolean, Boolean</p>
+										<pre><code>Button.highlight( true, true );</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.enable()</h3>
+									<div>
+										<h3>Enable button's event handlers</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>Button.enable();</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.disable()</h3>
+									<div>
+										<h3>Disable button's event handlers</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>Button.disable();</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.select()</h3>
+									<div>
+										<h3>Change the button's appearance to selected</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>Button.select();</code></pre>
+										<p>Returns: Button</p>
+									</div>
+									<h3>.deselect()</h3>
+									<div>
+										<h3>Change the button's appearance to deselected</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>Button.deselect();</code></pre>
+										<p>Returns: Button</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div id="tabs-6">
+						<h3>Button's Icon Object</h3>
+						<p>The Button can contain many icons and they can be selectively shown or hidden, one at a time - showing one icon will hide others. See the Button object for more info.</p>
+						<div class="tabs">
+							<ul>
+								<li><a href="#icon-tabs-0">Properties</a></li>
+								<li><a href="#icon-tabs-1">Methods</a></li>
+							</ul>
+							<div id="icon-tabs-0">
+								<div class="accordion">
+									<h3>.isGlowing()</h3>
+									<div>
+										<h3>Return icon glowing status ( Boolean )</h3>
+										<pre><code>ButtonIcon.isGlowing();</code></pre>
+									</div>
+									<h3>.isVisible()</h3>
+									<div>
+										<h3>Return icon visible status ( Boolean )</h3>
+										<pre><code>ButtonIcon.isVisible();</code></pre>
+									</div>
+								</div>
+							</div>
+							<div id="icon-tabs-1">
+								<div class="accordion">
+									<h3>.glow( toggle )</h3>
+									<div>
+										<h3>Toggle icon glow</h3>
+										<p>Parameter(s): Boolean</p>
+										<pre><code>ButtonIcon.glow( true );</code></pre>
+										<p>Returns: Icon</p>
+									</div>
+									<h3>.show()</h3>
+									<div>
+										<h3>Show icon</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>ButtonIcon.show();</code></pre>
+										<p>Returns: Icon</p>
+									</div>
+									<h3>.hide()</h3>
+									<div>
+										<h3>Hide icon</h3>
+										<p>Parameter(s): None</p>
+										<pre><code>ButtonIcon.hide();</code></pre>
+										<p>Returns: Icon</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<br>
+				<h3>Support &amp; Contact</h3>
+
+				<p>Report intolerances and bugs to the <a href="https://github.com/MiroHibler/RaphBoard/issues">project's issue tracker</a> and pray for mercy,<br>
+				or <a href="https://groups.google.com/d/forum/raphboard" target="_new">share your frustration</a> (yeah, like anyone cares, tsk.)</p>
+
+				<h3>Copyright &amp; License</h3>
+
+				<p>Copyright © 2012-2013 <a href="http://miro.hibler.me" target="_new">Miroslav Hibler</a>.</br>
+				Licensed by <a href="https://raw.github.com/MiroHibler/RaphBoard/master/LICENSE.txt" target="_new">MIT</a> license.</p>
+
+				<div id="footer">
+					<hr>
+					<span class="credits left">Project maintained by <a href="https://github.com/MiroHibler" class="user-mention" target="new">@MiroHibler</a></span>
+					<span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham" target="new">@mattgraham</a></span>
+				</div>
+
+			</section>
+
+		</div>
+		<!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		<script type="text/javascript">
+			drawLogo( "logo" );
+			$( document ).ready( function( $ ) {
+				$( ".tabs" ).tabs( {
+					collapsible	: true
+				} );
+
+				$( ".accordion" ).accordion( {
+					active		: false,
+					collapsible	: true,
+					heightStyle	: "content",
+					event		: "click hoverintent"
+				} );
+
+				var cfg = ( $.hoverintent = {
+					sensitivity	: 7,
+					interval	: 100
+				});
+
+				$.event.special.hoverintent = {
+					setup: function() {
+						$( this ).bind( "mouseover", jQuery.event.special.hoverintent.handler );
+					},
+					teardown: function() {
+						$( this ).unbind( "mouseover", jQuery.event.special.hoverintent.handler );
+					},
+					handler: function( event ) {
+						var that = this,
+							args = arguments,
+							target = $( event.target ),
+							cX, cY, pX, pY;
+
+						function track( event ) {
+							cX = event.pageX;
+							cY = event.pageY;
+						};
+						pX = event.pageX;
+						pY = event.pageY;
+						function clear() {
+							target
+								.unbind( "mousemove", track )
+								.unbind( "mouseout", arguments.callee );
+							clearTimeout( timeout );
+						}
+						function handler() {
+							if ( ( Math.abs( pX - cX ) + Math.abs( pY - cY ) ) < cfg.sensitivity ) {
+							clear();
+							event.type = "hoverintent";
+							// prevent accessing the original event since the new event
+							// is fired asynchronously and the old event is no longer
+							// usable (#6028)
+							event.originalEvent = {};
+							jQuery.event.handle.apply( that, args );
+						} else {
+							pX = cX;
+							pY = cY;
+							timeout = setTimeout( handler, cfg.interval );
+						}
+					}
+					var timeout = setTimeout( handler, cfg.interval );
+					target.mousemove( track ).mouseout( clear );
+					return true;
+					}
+				};
+			});
+		</script>
+		<script type="text/javascript">
+			var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+			document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+			try {
+				var pageTracker = _gat._getTracker("UA-38976220-1");
+				pageTracker._trackPageview();
+			} catch(err) {}
+		</script>
+	</body>
+</html>
