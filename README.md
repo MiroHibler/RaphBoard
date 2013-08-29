@@ -1,6 +1,6 @@
 # RaphBoard
 
-## Cross-browser drawing board based on [Raphaël](http://raphaeljs.com/). 
+## Cross-browser drawing board based on [Raphaël](http://MiroHibler.github.io/RaphBoard/images/RaphBoard.png). 
 
 ![RaphBoard - Cross-browser drawing board](http://cl.ly/image/2y1o0X0G1235)
 
@@ -25,7 +25,7 @@ Enabling touch events.
 * `git clone https://github.com/MiroHibler/RaphBoard.git`
 * `grunt --help` to see available options
 
-***PLEASE NOTE:** All changes in code must go to `source` directory! `jquery.raphboard.js` is a generated file!**
+*__PLEASE NOTE:__ All changes in code must go to `source` directory! `jquery.raphboard.js` is a generated file!*
 
 After adding your changes, execute `grunt` in the project folder to generate the minified version, commit and you are ready to make a pull request!
 
