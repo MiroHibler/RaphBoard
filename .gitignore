@@ -1,6 +1,6 @@
 # compiled
-!build/out/*.js
-build/out/demos
+!build/out/**
+build
 dist
 
 # local demo & test
