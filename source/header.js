@@ -3,9 +3,11 @@
 /*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
 /*! │ Copyright © <%= meta.copyright %> (<%= meta.homepage %>)             │ */
 /*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
-/*! │ Licensed under the MIT (<%= meta.homepage %>LICENSE.txt) license.        │ */
+/*! │ Licensed under the MIT license (http://opensource.org/licenses/mit-license.php).            │ */
 /*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
-/*! │ Requirements: Raphaël, jQuery                                                               │ */
+/*! │ Requirements: jQuery  (http://jquery.com)                                                   │ */
+/*! |               Raphaël (http://raphaeljs.com)                                                │ */
+/*! │               Raphaël FreeTransform (http://alias.io/raphael/free_transform/)               │ */
 /*! └─────────────────────────────────────────────────────────────────────────────────────────────┘ */
 
 // Object Creation Utility

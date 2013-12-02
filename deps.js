@@ -12,7 +12,8 @@
 // all files are relative to the project root
 
 var files = [
-	'raphael/raphael-min.js'
+	'raphael/raphael-min.js',
+	'freetransform/raphael.free_transform.js'
 ];
 
 

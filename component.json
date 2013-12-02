@@ -1,5 +1,5 @@
 {
   "main": [
-    "./build/out/RaphBoard/jquery.raphboard.js"
+    "./build/out/RaphBoard/raphboard.js"
   ]
 }

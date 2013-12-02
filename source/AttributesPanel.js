@@ -3,13 +3,10 @@
 			var self = this;
 
 			self._board = RB;
-			self._container = $( "#" + id )
+			self._container = $( "#" + id );
 
 			self._container.css( {
-				position	: "relative",
-				top			: "-" + self._board.height() + "px",
-				width		: self._board.width() + "px",
-				height		: self._board.height() + "px",
+				position	: "absolute",
 				"z-index"	: "9999",
 				display		: "none"
 			} );
@@ -23,7 +20,7 @@
 				containerSVG.css( "top", "" );
 			}
 
-			return self;   
+			return self;
  		},
 
  		// Properties
@@ -43,7 +40,7 @@
 			var h = self._board.height();
 
 			self._container.css( {
-				top			: "-" + h + "px",
+				top			: "0px",
 				width		: w + "px",
 				height		: h + "px",
 			} );
@@ -196,8 +193,8 @@
 				} else if ( width == 0 ) {
 					width = 2;
 				}
-			} 
- 
+			}
+
 			// Cancel Button
 			var cancel_back = self._paper.circle( ( w/2 ) - 90, ( h/2 ) + 90, 16 ).attr( {
 				fill	: "rgba(0,0,0,0)",

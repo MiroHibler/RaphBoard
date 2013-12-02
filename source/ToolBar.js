@@ -5,7 +5,7 @@
 			self._board = RB;
 			self._isEnabled = true;
 			self._height = 40;
-			self._container = $( "#" + id )
+			self._container = $( "#" + id );
 			self._buttons = [];
 
 			self._container.css( {
@@ -104,18 +104,15 @@
 						if ( self._board.options.editable ) {
 							switch( this.name() ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 								case "undo":
-									if ( EventHandler( self._board, "before_undo" ) ) self._board.undo();
-									EventHandler( self._board, "after_undo" );
+									self._board.undo();
 									break;
 								case "redo":
-									if ( EventHandler( self._board, "before_redo" ) ) self._board.redo();
-									EventHandler( self._board, "after_redo" );
+									self._board.redo();
 									break;
 								case "clear":
 									this.deselect();
 									this.highlight( true, false );
-									if ( EventHandler( self._board, "before_clear" ) ) self._board.clear();
-									EventHandler( self._board, "after_clear" );
+									self._board.clear();
 									break;
 								case "palette":
 									self._board.attributesPanel.show();
@@ -219,8 +216,37 @@
 			}
 
 			return self;
+		},
+
+		toggleUndoRedo: function () {
+			var self = this;
+
+			var undoButton = self.button( "undo" );
+			var redoButton = self.button( "redo" );
+
+			if ( self._board.canUndo() ) {
+				undoButton.activeIcon()._path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
+				undoButton.enable();
+			} else {
+				undoButton.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+				undoButton.disable();
+			}
+
+			if ( self._board.canRedo() ) {
+				redoButton.activeIcon()._path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
+				redoButton.enable();
+			} else {
+				redoButton.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
+				redoButton.disable();
+			}
+
+			return self;
 		}
 	};
+
+	function ToolBar ( board, id ) {
+		return Object.create( _toolBar ).init( board, id );
+	}
 
 	function _ToggleButtons ( toggle ) {
 		var self = this;
@@ -232,8 +258,4 @@
 				self._buttons[idx].disable();
 			}
 		}
-	}
-
-	function ToolBar ( board, id ) {
-		return Object.create( _toolBar ).init( board, id );
 	}

@@ -1,12 +1,8 @@
-	var toolBarContainer			= "r_b-toolbar";
-	var canvasContainer				= "r_b-paper";
-	var attributesPanelContainer	= "r_b-overlay";
-
 	var Board = {
 		init: function ( options, elem ) {
 			var self = this;
 
-			self._version = "<%= meta.version %>";
+			self._version = "1.1.0";
 			self._UUID = Raphael.createUUID();
 
 			self.elem = elem;
@@ -38,11 +34,21 @@
 				before_mode_change		: null,		// called right before internal mode change procedure starts
 				after_mode_change		: null,		// called right after internal mode change procedure completes
 				before_start			: null,		// called right before internal drawing procedure starts
-				after_start				: null,		// called right after internal drawing procedure completes
+				after_start				: null,		// called right after internal drawing procedure starts
 				before_change			: null,		// called right before internal drawing change procedure starts
 				after_change			: null,		// called right after internal drawing change procedure completes
-				before_end				: null,		// called right before internal drawing procedure starts
+				before_end				: null,		// called right before internal drawing procedure completes
 				after_end				: null,		// called right after internal drawing procedure completes
+				before_select			: null,		// called right before internal select procedure starts
+				after_select			: null,		// called right after internal select procedure completes
+				before_deselect			: null,		// called right before internal deselect procedure starts
+				after_deselect			: null,		// called right after internal deselect procedure completes
+				before_show_handles		: null,		// called right before internal show_handles procedure starts
+				after_show_handles		: null,		// called right after internal hide_handles procedure starts
+				before_hide_handles		: null,		// called right before internal hide_handles procedure starts
+				after_hide_handles		: null,		// called right after internal show_handles procedure starts
+				before_move				: null,		// called right before internal move procedure starts
+				after_move				: null,		// called right after internal move procedure completes
 				before_cut				: null,		// called right before internal cut procedure starts
 				after_cut				: null,		// called right after internal cut procedure completes
 				before_undo				: null,		// called right before internal undo procedure starts
@@ -50,34 +56,38 @@
 				before_redo				: null,		// called right before internal redo procedure starts
 				after_redo				: null,		// called right after internal redo procedure completes
 				before_clear			: null,		// called right before internal clearing procedure starts
-				after_clear				: null		// called right after internal clearing procedure completes
+				after_clear				: null,		// called right after internal clearing procedure completes
+				updateUndoRedo			: null		// called upon each undo/redo operation to update GUI
 			}
 
 			// The Toolbar
-			// TODO: Move to external DIV and CSS
-			if ( self.options.showToolBar ) {
+			// Only if included!
+			if ( typeof _toolBar !== 'undefined' && _toolBar != null ) {
+				var toolBarContainer = "r_b-toolbar";
 				self.$elem.append( "<div id='" + toolBarContainer + "'/>" );
 				self.toolBar = ToolBar( self, toolBarContainer );
+
+				// The Attributes Panel
+				var attributesPanelContainer = "r_b-overlay";
+				self.$elem.append( "<div id='" + attributesPanelContainer + "'/>" );
+				self.attributesPanel = AttributesPanel( self, attributesPanelContainer );
 			}
 
 			// The Canvas
+			var canvasContainer = "r_b-paper";
 			self.$elem.append( "<div id='" + canvasContainer + "'/>" );
 			self.canvas = Canvas( self, canvasContainer );
 			self.paper = self.canvas.paper();
 
-			self.shapes = [];	// list of all drawn objects
+			// TODO: REMOVE self.elements ALTOGETHER!
+			self.elements = [];		// list of all drawn objects
 			self.undoBuffer = [];	// undo buffer, contains all actions
 			self.redoBuffer = [];	// redo buffer, contains all undone actions
 
 			self.mode( "pen" );	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 
-			// The Attributes Panel
-			self.$elem.append( "<div id='" + attributesPanelContainer + "'/>" );
-			self.attributesPanel = AttributesPanel( self, attributesPanelContainer );
-
 			// Register Mouse Events
-			self.mouseDownX = 0;
-			self.mouseDownY = 0;
+			self.mouseDownX = self.mouseDownY = self.mouseUpX = self.mouseUpY = 0;
 
 			self.canvas._container.mouseenter( OnMouseEnter );
 
@@ -85,6 +95,10 @@
 		},	// init:
 
 		// Properties
+		container: function () {
+			return this.elem;
+		},
+
 		version: function () {
 			return this._version;
 		},
@@ -121,9 +135,74 @@
 			return ( this.redoBuffer.length > 0 );
 		},
 
+		// Attributes Methods
+		getAttribute: function ( name ) {
+			var o = this.options;
+
+			if ( name == "align" ) {
+				return o[ "textAnchor" ];
+			} else {
+				return o[ name ];
+			}
+		},
+
+		toggleAttribute: function ( name ) {
+			var o = this.options;
+
+			switch( name ) {
+				case "editable":
+					o[ "editable" ] = !o[ "editable" ];
+					break;
+				case "bold":
+					o[ 'fontWeight' ] = o[ 'fontWeight' ] == 'bold' ? 'normal' : 'bold';
+					break;
+				case "italic":
+					o[ 'fontStyle' ] = o[ 'fontStyle' ] == 'italic' ? 'normal' : 'italic';
+					break;
+				case "underline":
+					o[ 'textDecoration' ] = o[ 'textDecoration' ] == 'underline' ? 'none' : 'underline';
+					break;
+				case "strike":
+					o[ 'textDecoration' ] = o[ 'textDecoration' ] == 'line-through' ? 'none' : 'line-through';
+					break;
+				default:
+					// Ignore
+			}
+
+			return o[ name ];
+		},
+
+		setAttribute: function ( name, attribute ) {
+			var o = this.options;
+
+			if ( name == "align" ) {
+				switch( attribute ) {
+					case "left":
+						o[ "textAnchor" ] = "start";
+						break;
+					case "center":
+						o[ "textAnchor" ] = "middle";
+						break;
+					case "right":
+						o[ "textAnchor" ] = "end";
+						break;
+					case "justify":
+						// TODO: Implement Text Alignment: Justify
+						o[ "textAnchor" ] = "middle";
+						break;
+					default:
+						o[ "textAnchor" ] = "start";
+				}
+			} else {
+				o[ name ] = attribute;
+			}
+
+			return o[ name ];
+		},
+
 		// Event handling methods
 		on: function ( eventType, callback ) {
-			self = this;
+			var self = this;
 
 			$.each( self.eventHandlers, function ( k, v ) {
 				if ( k = eventType ) {
@@ -136,7 +215,7 @@
 		},
 
 		off: function ( eventType ) {
-			self = this;
+			var self = this;
 
 			$.each( self.eventHandlers, function ( k, v ) {
 				if ( k = eventType ) {
@@ -153,7 +232,7 @@
 			var self = this;
 
 			self.options.editable = true;
-			if ( self.options.showToolBar ) {
+			if ( self.toolBar ) {
 				self.toolBar.enable();
 			}
 
@@ -166,7 +245,7 @@
 			self.canvas._container.unbind( "mouseenter" );
 			self.elem.removeClasses( "cursor-*" );
 			self.options.editable = false;
-			if ( self.options.showToolBar ) {
+			if ( self.toolBar ) {
 				self.toolBar.disable();
 			}
 
@@ -178,10 +257,10 @@
 
 			if ( mode !== undefined ) {
 				if ( EventHandler( self, "before_mode_change" ) ) {
-					ResetModeEvents( self );
+					ClearModeEvents( self );
 					self._mode = mode;
 					if ( self.options.editable ) {
-						if ( self.options.showToolBar ) {
+						if ( self.toolBar ) {
 							self.toolBar.deselectAll();
 							self.toolBar.button( self._mode ).select();
 						}
@@ -196,72 +275,303 @@
 
 		element: function ( id ) {
 			var self = this;
-			var shape;
+			var element;
 
-			$.each( self.shapes, function( k, v ) {
+			$.each( self.elements, function( k, v ) {
 				if ( v.id == id ) {
-					shape = v;
-					return false;
+					element = v;
+					return false;	// We've reached the goal, exit $.each
 				}
-			} );
+			});
 
-			return shape;
+			return element;
+		},
+
+		initMove: function ( id, hideHandles ) {
+			var self = this;
+			var element = self.element( id );
+
+			if ( element && element.freeTransform ) {
+				var ft = element.freeTransform;
+			} else {
+				var ft = InitMove( self, element );
+			}
+			if ( hideHandles ) {
+				ft.hideHandles({ undrag: false });
+			} else {
+				ft.showHandles();
+			}
+
+			return element;
+		},
+
+		select: function ( id ) {
+			var self = this;
+
+			return self.initMove( id );
+		},
+
+		deselect: function ( id, noUnplug ) {
+			var self = this;
+			var element = self.element( id );
+
+			if ( element ) {
+				ClearElementEvents( element, noUnplug );
+			}
+
+			return element;
+		},
+
+		showHandles: function ( id ) {
+			var self = this;
+			var element = self.element( id );
+
+			if ( element ) {
+				return ShowHandles( self, element );
+			}
+		},
+
+		hideHandles: function ( id ) {
+			var self = this;
+			var element = self.element( id );
+
+			if ( element ) {
+				return HideHandles( self, element );
+			}
 		},
 
 		move: function ( id, x, y ) {
+			// TODO: Rewrite to use freeTransform
 			var self = this;
-			var shape = self.element( id );
+			var element = self.element( id );
 			var animation = self.options.animation;
 
-			if ( shape ) {
-				InitDragStart( shape );
-				var dx = x - shape.ox;
-				var dy = y - shape.oy;
-				if ( animation ) {
-					switch( shape.type ) {
-						case "path":
-							var animationParams = {
-								transform: "t" + ( parseInt( shape.ox ) + parseInt( dx ) ) +
-											"," + ( parseInt( shape.oy ) + parseInt( dy ) )
-							}
-							break;
-						case "circle":
-						case "ellipse":
-							var animationParams = {
-								cx: shape.ox + dx,
-								cy: shape.oy + dy
-							};
-							break;
-						default:
-							var animationParams = {
-								x: shape.ox + dx,
-								y: shape.oy + dy
-							};
-					}
-					shape.animate( Raphael.animation(
-						$.extend( {}, animation.params, animationParams ),
-						animation.ms,
-						animation.easing
-					));
+			if ( element ) {
+				switch( element.type ) {	// "path|circle|ellipse|rect|text"
+					case "path":
+						var t = element.matrix.toTransformString().replace( "t", "" ).split( "," );
+						element.ox = t[0] ? t[0] : 0;
+						element.oy = t[1] ? t[1] : 0;
+						break;
+					case "circle":
+					case "ellipse":
+						element.ox = element.attr( "cx" );
+						element.oy = element.attr( "cy" );
+						break;
+					default:
+						element.ox = element.attr( "x" );
+						element.oy = element.attr( "y" );
 				}
-				UpdateDrag( self, shape, dx, dy );
-				PushToBuffer( self, "move", shape );
+				var dx = x - element.ox;
+				var dy = y - element.oy;
+				// if ( animation ) {
+				// 	switch( element.type ) {
+				// 		case "path":
+				// 			var animationParams = {
+				// 				transform: "t" + ( parseInt( element.ox ) + parseInt( dx ) ) +
+				// 							"," + ( parseInt( element.oy ) + parseInt( dy ) )
+				// 			}
+				// 			break;
+				// 		case "circle":
+				// 		case "ellipse":
+				// 			var animationParams = {
+				// 				cx: element.ox + dx,
+				// 				cy: element.oy + dy
+				// 			};
+				// 			break;
+				// 		default:
+				// 			var animationParams = {
+				// 				x: element.ox + dx,
+				// 				y: element.oy + dy
+				// 			};
+				// 	}
+				// 	element.animate( Raphael.animation(
+				// 		$.extend( {}, animation.params, animationParams ),
+				// 		animation.delay,
+				// 		animation.easing
+				// 	));
+				// }
+				switch( element.type ) {
+					case "path":
+						element.transform( "t" +
+							( parseInt( element.ox ) + parseInt( dx ) ) + "," +
+							( parseInt( element.oy ) + parseInt( dy ) )
+						);
+						break;
+					case "circle":
+					case "ellipse":
+						element.attr( { cx: element.ox + dx, cy: element.oy + dy } );
+						break;
+					default:
+						element.attr( { x: element.ox + dx, y: element.oy + dy } );
+				}
+				self.paper.safari();
+				PushToBuffer( self, "move", element );
 			}
 
-			return shape;
+			return element;
+		},
+
+		modify: function ( id, attrs ) {
+			var self = this;
+			var element = self.element( id );
+			var animation = self.options.animation;
+
+			if ( element ) {
+				if ( typeof attrs === "object" ) {
+
+					element.attr( attrs );
+
+					self.paper.safari();
+
+					PushToBuffer( self, "modify", element );
+				}
+			}
+
+			return element;
+		},
+
+		transform: function ( id, transform ) {
+			var self = this;
+			var animation = self.options.animation;
+			var element = self.element( id );
+
+			if ( element ) {
+				if ( typeof transform === "string" ) {
+
+					element.transform( transform );
+
+					self.paper.safari();
+
+					PushToBuffer( self, "transform", element );
+				}
+			}
+
+			return element;
+		},
+
+		freeTransform: function ( id, attrs ) {
+			var self = this;
+			var element = self.element( id );
+
+			if ( element ) {
+				if ( typeof attrs === "object" ) {
+
+					// var unplug = false;
+					// var ft = element.freeTransform;
+					// if ( !ft ) {
+					// 	unplug = true;
+					// 	ft = self.paper.freeTransform( element ).setOpts({
+					// 		animate: self.options.animation
+					// 	});
+					// }
+
+					// var attrs_ = JSON.parse( JSON.stringify( attrs ) );
+					// var fa = ft.attrs;
+
+					// for ( var attr in attrs_ ) {
+					// 	switch ( attr ) {
+					// 	case "cx":
+					// 		fa.translate.x = attrs_[attr] - fa.center.x;
+					// 		fa.center.x = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "cy":
+					// 		fa.translate.y = attrs_[attr] - fa.center.y;
+					// 		fa.center.y = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "rx":
+					// 		fa.size.x = attrs_[attr] * 2;
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "ry":
+					// 		fa.size.y = attrs_[attr] * 2;
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "sx":
+					// 		fa.scale.x = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "sy":
+					// 		fa.scale.y = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "width":
+					// 		fa.size.x = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "height":
+					// 		fa.size.y = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "x":
+					// 		fa.translate.x = attrs_[attr] - fa.x;
+					// 		fa.x = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "y":
+					// 		fa.translate.y = attrs_[attr] - fa.y;
+					// 		fa.y = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "r":
+					// 		fa.size.x = attrs_[attr] * 2;
+					// 		fa.size.y = attrs_[attr] * 2;
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "ratio":
+					// 		fa.ratio = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	case "rotate":
+					// 		fa.rotate = attrs_[attr];
+					// 		delete attrs_[attr];
+					// 		break;
+					// 	default:
+					// 		// Ignore
+					// 	}
+					// }
+
+					// element.attr( attrs );
+
+					// if ( data ) {
+					// 	if ( data.ft && data.ft.attrs ) {
+					// 		ft.attr( data.ft.attrs );
+							SetFreeTransformAttrs( self, element, attrs )
+					// 	}
+					// }
+
+					// ft.apply();
+
+					// if ( unplug ) {
+					// 	ft.unplug();
+					// }
+
+					// if ( !( JSON.stringify( attrs_ ) === "{}" ) ) {
+					// 	element.attr( attrs_ );
+					// }
+
+					PushToBuffer( self, "move", element );
+				} else {
+					return GetFreeTransformAttrs( self, element )
+				}
+			}
+
+			return element;
 		},
 
 		line: function ( x, y, dx, dy ) {
 			var self = this;
 
 			if ( !( dx == 0 && dy == 0 ) ) {
-				var shape = StartLine( self, x, y );
-				shape.attr( "path", "M" + x + "," + y +
+				var element = StartLine( self, x, y );
+				element.attr( "path", "M" + x + "," + y +
 									"L" + dx + "," + dy );
-				self.shapes.push( shape );
-				PushToBuffer( self, "line", shape );
+				self.elements.push( element );
+				PushToBuffer( self, "line", element );
 
-				return shape;
+				return element;
 			}
 
 			return null;
@@ -271,13 +581,13 @@
 			var self = this;
 
 			if ( !( dx == 0 && dy == 0 ) ) {
-				var shape = StartLine( self, x, y );
-				shape.attr( "path", "M" + x + "," + y +
+				var element = StartLine( self, x, y );
+				element.attr( "path", "M" + x + "," + y +
 									"L" + dx + "," + dy );
-				self.shapes.push( shape );
-				PushToBuffer( self, "arrow", shape );
+				self.elements.push( element );
+				PushToBuffer( self, "arrow", element );
 
-				return shape;
+				return element;
 			}
 
 			return null;
@@ -287,12 +597,12 @@
 			var self = this;
 
 			if ( r != 0 ) {
-				var shape = StartCircle( self, x, y );
-				shape.attr( "r", r );
-				self.shapes.push( shape );
-				PushToBuffer( self, "circle", shape );
+				var element = StartCircle( self, x, y );
+				element.attr( "r", r );
+				self.elements.push( element );
+				PushToBuffer( self, "circle", element );
 
-				return shape;
+				return element;
 			}
 
 			return null;
@@ -302,13 +612,13 @@
 			var self = this;
 
 			if ( !( rx == 0 && ry == 0 ) ) {
-				var shape = StartEllipse( self, x, y );
-				shape.attr( "rx", rx )
+				var element = StartEllipse( self, x, y );
+				element.attr( "rx", rx )
 					.attr( "ry", ry );
-				self.shapes.push( shape );
-				PushToBuffer( self, "ellipse", shape );
+				self.elements.push( element );
+				PushToBuffer( self, "ellipse", element );
 
-				return shape;
+				return element;
 			}
 
 			return null;
@@ -318,13 +628,13 @@
 			var self = this;
 
 			if ( !( dx == 0 && dy == 0 ) ) {
-				var shape = StartRectangle( self, x, y );
-				shape.attr( "dx", dx )
+				var element = StartRectangle( self, x, y );
+				element.attr( "dx", dx )
 					.attr( "dy", dy );
-				self.shapes.push( shape );
-				PushToBuffer( self, "rect", shape );
+				self.elements.push( element );
+				PushToBuffer( self, "rect", element );
 
-				return shape;
+				return element;
 			}
 
 			return null;
@@ -338,15 +648,15 @@
 					var fontSize = Math.abs( parseInt( size ) );
 					self.options.fontSize = ( fontSize == 0 ) ? 12 : fontSize;
 				}
-				var shape = DrawText( self, x, y, text );
-				self.shapes.push( shape );
-				PushToBuffer( self, "text", shape );
+				var element = DrawText( self, x, y, text );
+				self.elements.push( element );
+				PushToBuffer( self, "text", element );
 
 				/***********************************************************/
 				// EXCEPTIONALLY IN THIS CASE WE'RE CALLING EVENT HANDLER! //
 				/***********************************************************/
 				EventHandler( self, "after_end" );
-				return shape;
+				return element;
 			}
 
 			return null;
@@ -354,15 +664,15 @@
 
 		cut: function ( id ) {
 			var self = this;
-			var shapes = self.shapes;
+			var elements = self.elements;
 			var isCut = false;
 
-			if ( shapes.length > 0 ) {
-				for ( var i=0;i<shapes.length;i++ ) {
-					if ( shapes[i].id == id ) {
-						PushToBuffer( self, "cut", shapes[i] );
-						shapes[i].remove();
-						shapes.splice( i, 1 );
+			if ( elements.length > 0 ) {
+				for ( var i=0;i<elements.length;i++ ) {
+					if ( elements[i].id == id ) {
+						PushToBuffer( self, "cut", elements[i] );
+						elements[i].remove();
+						elements.splice( i, 1 );
 						isCut = true;
 						break;
 					}
@@ -371,44 +681,90 @@
 
 			return isCut;
 		},
-
+		// TODO: Change toJSON to export self.elements not paper elements
 		toJSON: function ( id, callback ) {
-			var data;
-			var elements = [];
-			var paper = this.paper;
+			// https://github.com/ElbertF/Raphael.JSON
+			var self = this,
+				elements = [],
+				cache = [],
+				paper = self.paper,
+				prepareElement = function ( el ) {
+					var data = callback ? callback( el, new Object ) : new Object;
 
-			for ( var el=paper.bottom;el!=null;el=el.next ) {
-				data = callback ? callback( el, new Object ) : new Object;
+					if ( data ) {
+						data.ft = {
+							attrs: GetFreeTransformAttrs( self, el )
+						};
+						elements.push({
+							command : el.type,
+							element : {
+								data		: data,
+								type		: el.type,
+								attrs		: el.attrs,
+								transform	: el.matrix.toTransformString(),
+								id			: el.id
+							}
+						});
+					}
+				};
 
-				if ( data ) elements.push({
-					data		: data,
-					type		: el.type,
-					attrs		: el.attrs,
-					transform	: el.matrix.toTransformString(),
-					id			: el.id
+			if ( id ) {
+				prepareElement( paper.getById( id ) );
+			} else {
+				paper.forEach(function( el ) {
+					prepareElement( el );
 				});
 			}
 
-			return JSON.stringify( elements );
+			var o = JSON.stringify( elements, function ( key, value ) {
+				// http://stackoverflow.com/a/11616993/400048
+				if ( typeof value === 'object' && value != null ) {
+					if ( cache.indexOf( value ) !== -1 ) {
+						// Circular reference found, discard key
+						return;
+					}
+					// Store value in our collection
+					cache.push( value );
+				}
+				return value;
+			});
+
+			elements = cache = null;
+
+			return o;
 		},
 
 		fromJSON: function ( elements, callback ) {
-			var self = this;
-			var json;
+			// https://github.com/ElbertF/Raphael.JSON
+			var self = this,
+				json = [],
+				_json;
 
 			if ( typeof elements === "string" ) {
-				json = JSON.parse( elements );
+				_json = JSON.parse( elements );
 			} else {
-				json = elements;
+				_json = elements;
+			}
+
+			if ( !( _json instanceof Array ) ) {
+				json.push( _json );
+			} else {
+				json = _json;
 			}
 
 			for ( var i in json ) {
 				if ( json.hasOwnProperty( i ) ) {
-					var shape = Draw( self, json[i].shape );
+					var element = Draw( self, json[i].element );
+					var data = json[i].element.data;
+					if ( data ) {
+						if ( data.ft && data.ft.attrs ) {
+							SetFreeTransformAttrs( self, element, data.ft.attrs );
+						}
+					}
 
-					if ( callback ) callback( shape );
+					if ( callback ) callback( element );
 
-					PushToBuffer( self, json[i].command, shape );
+					PushToBuffer( self, json[i].command, element );
 				}
 			}
 		},
@@ -417,66 +773,80 @@
 			var self = this;
 
 			if ( self.canUndo() ) {
-				var shapes = self.shapes;
-				var undoBuffer = self.undoBuffer;
-				var paper = self.paper;
-				var element = undoBuffer.pop();
-				var mode = element.command;
+				if ( EventHandler( self, "before_undo" ) ) {
+					var paper = self.paper;
+					var elements = self.elements;
+					var undoBuffer = self.undoBuffer;
+					var shape = undoBuffer.pop();
+					var mode = shape.command;
 
-				ResetModeEvents( self );
-				switch( mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut|clear"
-					case "move":
-						var prev = null;
-						for ( var i=undoBuffer.length-1;i>=0;i-- ) {
-							prev = undoBuffer[i].shape;
-							if ( prev.id == element.shape.id ) {
-								var x, y;
-								switch( prev.type ) {
-									case 'path':
-										var t = prev.transform.replace( "t", "" ).split( "," );
-										x = t[0] ? t[0] : 0;
-										y = t[1] ? t[1] : 0;
-										break;
-									case 'circle':
-									case 'ellipse':
-										x = prev.attrs.cx;
-										y = prev.attrs.cy;
-										break;
-									default:
-										x = prev.attrs.x;
-										y = prev.attrs.y;
-								}
-								self.move( prev.id, x, y );
-								// self.move() pushes shape to undo buffer,
+					ClearModeEvents( self );
+					switch( mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut|clear"
+						case "move":
+							var prev = PreviousShapeInBuffer( undoBuffer, shape.element.id );
+							if ( prev ) {
+								// self.modify( prev.id, prev.attrs );
+								// self.modify() pushes shape to undo buffer,
+								// so we fix that
+								// self.undoBuffer.pop();
+								// self.transform( prev.id, prev.transform );
+								// self.transform() pushes shape to undo buffer,
+								// so we fix that
+								// self.undoBuffer.pop();
+								self.freeTransform( prev.id, prev.data.ft.attrs );
+								// self.freeTransform() pushes shape to undo buffer,
+								// so we fix that
+								self.undoBuffer.pop();
+							}
+							break;
+						case "modify":
+							var prev = PreviousShapeInBuffer( undoBuffer, shape.element.id );
+							if ( prev ) {
+								self.modify( prev.id, prev.attrs );
+								// self.modify() pushes shape to undo buffer,
 								// so we fix that
 								self.undoBuffer.pop();
 								break;
 							}
-						}
-						break;
-					case "cut":
-						Draw( self, element.shape );
-						break;
-					case "clear":
-						for ( var i=0;i<element.shapes.length;i++ ) {
-							Draw( self, element.shapes[i] );
-						}
-						break;
-					default:	// undo draw shape
-						shapes.pop().remove();
-				}
-				self.redoBuffer.push( element );
-				switch( mode ) {
-					case "undo":
-					case "redo":
-					case "clear":
-						break;
-					default:
-						self.mode( mode );
-						SetModeEvents( self );
+							break;
+						case "transform":
+							var prev = PreviousShapeInBuffer( undoBuffer, shape.element.id );
+							if ( prev ) {
+								self.transform( prev.id, prev.transform );
+								// self.transform() pushes shape to undo buffer,
+								// so we fix that
+								self.undoBuffer.pop();
+								break;
+							}
+							break;
+						case "cut":
+							Draw( self, shape.element );
+							break;
+						case "clear":
+							shape.elements.map(function( element ) {
+								Draw( self, element );
+							});
+							break;
+						default:	// undo draw shape
+							elements.pop().remove();
+					}
+					self.redoBuffer.push( shape );
+					switch( mode ) {
+						case "modify":
+						case "transform":
+						case "undo":
+						case "redo":
+						case "clear":
+							break;
+						default:
+							self.mode( mode );
+							SetModeEvents( self );
+					}
 				}
 			}
-			self.indicateUndoRedo();
+			self.toggleUndoRedo();
+
+			EventHandler( self, "after_undo" );
 
 			return self;
 		},
@@ -485,7 +855,7 @@
 			var self = this;
 
 			self.undoBuffer = [];
-			self.indicateUndoRedo();
+			self.toggleUndoRedo();
 
 			return self;
 		},
@@ -494,55 +864,64 @@
 			var self = this;
 
 			if ( self.canRedo() ) {
-				var shapes = self.shapes;
-				var redoBuffer = self.redoBuffer;
-				var paper = self.paper;
-				var element = redoBuffer.pop();
-				var mode = element.command;
-				var shape = element.shape;
+				if ( EventHandler( self, "before_redo" ) ) {
+					var elements = self.elements;
+					var redoBuffer = self.redoBuffer;
+					var paper = self.paper;
+					var shape = redoBuffer.pop();
+					var mode = shape.command;
+					var element = shape.element;
 
-				ResetModeEvents( self );
-				switch( mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
-					case "move":
-						var x, y;
-						switch( shape.type ) {
-							case 'path':
-								var t = shape.transform.replace( "t", "" ).split( "," );
-								x = t[0] ? t[0] : 0;
-								y = t[1] ? t[1] : 0;
-								break;
-							case 'circle':
-							case 'ellipse':
-								x = shape.attrs.cx;
-								y = shape.attrs.cy;
-								break;
-							default:
-								x = shape.attrs.x;
-								y = shape.attrs.y;
-						}
-						self.move( shape.id, x, y );
-						break;
-					case "cut":
-						self.cut( shape.id );
-						break;
-					case "clear":
-						self.clear();
-						break;
-					default:	// undo draw shape
-						Draw( self, shape );
-						self.undoBuffer.push( element );
-				}
-				switch( mode ) {
-					case "undo":
-					case "redo":
-					case "clear":
-						break;
-					default:
-						self.mode( mode );
-						SetModeEvents( self );
+					ClearModeEvents( self );
+					switch( mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut|clear"
+						case "move":
+							// self.modify( element.id, element.attrs );
+							// self.modify() pushes element to undo buffer,
+							// so we fix that
+							// self.undoBuffer.pop();
+							// self.transform( element.id, element.transform );
+							// self.transform() pushes element to undo buffer,
+							// so we fix that
+							// self.undoBuffer.pop();
+							// self.undoBuffer.push( shape );
+							self.freeTransform( element.id, shape.element.data.ft.attrs );
+							// self.freeTransform() pushes element to undo buffer,
+							// so we fix that
+							self.undoBuffer.pop();
+							self.undoBuffer.push( shape );
+							break;
+						case "modify":
+							self.modify( element.id, element.attrs );
+							break;
+						case "transform":
+							self.transform( element.id, element.transform );
+							break;
+						case "cut":
+							self.cut( element.id );
+							break;
+						case "clear":
+							self.clear();
+							break;
+						default:	// redo draw element
+							Draw( self, element );
+							self.undoBuffer.push( shape );
+					}
+					switch( mode ) {
+						case "modify":
+						case "transform":
+						case "undo":
+						case "redo":
+						case "clear":
+							break;
+						default:
+							self.mode( mode );
+							SetModeEvents( self );
+					}
 				}
 			}
-			self.indicateUndoRedo();
+			self.toggleUndoRedo();
+
+			EventHandler( self, "after_redo" );
 
 			return self;
 		},
@@ -551,32 +930,22 @@
 			var self = this;
 
 			self.redoBuffer = [];
-			self.indicateUndoRedo();
+			self.toggleUndoRedo();
 
 			return self;
 		},
 
-		indicateUndoRedo: function () {
+		toggleUndoRedo: function () {
 			var self = this;
 
-			if ( self.options.showToolBar ) {
-				var undoButton = self.toolBar.button( "undo" );
-				var redoButton = self.toolBar.button( "redo" );
+			if ( self.toolBar ) {
 
-				if ( self.canUndo() ) {
-					undoButton.activeIcon()._path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
-					undoButton.enable();
-				} else {
-					undoButton.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
-					undoButton.disable();
-				}
+				var handler = self.eventHandlers[ 'updateUndoRedo' ];
 
-				if ( self.canRedo() ) {
-					redoButton.activeIcon()._path.attr( { fill: "90-#BBF1B2-#5D9E54", stroke: "none" } );
-					redoButton.enable();
+				if ( handler ) {
+					handler( self );
 				} else {
-					redoButton.activeIcon()._path.attr( { fill: "90-#888-#CCC", stroke: "none" } );
-					redoButton.disable();
+					self.toolBar.toggleUndoRedo();
 				}
 			}
 
@@ -586,29 +955,33 @@
 		clear: function () {
 			var self = this;
 
-			if ( self.shapes.length > 0 ) {
-				ResetModeEvents( self );
-				var shapes = [];
-				for ( var i=0;i<self.shapes.length;i++ ) {
-					shapes.push( CloneShape( self.shapes[i] ) );
+			if ( self.elements.length > 0 ) {
+				if ( EventHandler( self, "before_clear" ) ) {
+					ClearModeEvents( self );
+					var elements = [];
+					self.elements.map(function( element ) {
+						elements.push( CloneElement( self, element ) );
+					});
+					self.undoBuffer.push({
+						command	: "clear",
+						elements: elements
+					} );
+					self.elements = [];
+					self.paper.clear();
 				}
-				self.undoBuffer.push({
-					command	: "clear",
-					shapes	: shapes
-				} );
-				self.shapes = [];
-				self.paper.clear();
 			}
 			self.clearRedo();
+
+			EventHandler( self, "after_clear" );
 
 			return self;
 		},
 
 		flush: function () {
-			self = this;
+			var self = this;
 
-			ResetModeEvents( self );
-			self.shapes = [];
+			ClearModeEvents( self );
+			self.elements = [];
 			self.paper.clear();
 			self.clearUndo();
 			self.clearRedo();
@@ -620,24 +993,22 @@
 	$.fn.RaphBoard = function ( options, argument ) {
 		var board = $( this ).data( "RaphBoard" );
 
-		if ( board ) {
-			if ( options !== undefined ) {
-				if ( typeof options === "object" ) {
-					// Set options
-					board.options = $.extend( {}, $.fn.RaphBoard.options, options );
-				} else if ( typeof options === "string" ) {
-					// Set options
-					board.options = $.extend( {}, $.fn.RaphBoard.options, { options: argument } );
-				}
-
-				return board;
-			}
-		} else {
+		if ( !board ) {
 			board = Object.create( Board );
 
 			board.init( options, this );
 
 			$.data( this.get( 0 ), "RaphBoard", board );
+		}
+
+		if ( options !== undefined ) {
+			if ( typeof options === "object" ) {
+				// Set options
+				board.options = $.extend( {}, $.fn.RaphBoard.options, options );
+			} else if ( typeof options === "string" ) {
+				// Set options
+				board.options = $.extend( {}, $.fn.RaphBoard.options, { options: argument } );
+			}
 		}
 
 		return board;
@@ -648,17 +1019,24 @@
 		// See http://raphaeljs.com/reference.html#Element.attr for more info
 		*/
 		editable		: true,										// allow editing
-		showToolBar		: true,										// show/hide toolbar
-		fill			: "#FFF",									// white
-		stroke			: "#FFF",									// white
-		strokeWidth		: 1,										// "small (1)|medium (4)|big (8)|huge (12)""
-		lineCap			: "round",									// “butt|square|round”
-		lineJoin		: "round",									// “bevel|round|miter”
-		arrowEnd		: "classic-medium-medium",					// "classic|block|open|oval|diamond|none[-wide|narrow|midium[-long|short|midium]]"
-		fontSize		: 12,
-		textAnchor		: "start",									// "start|middle|right"
-		animation		: { params: {}, ms: 100, easing: "<>" }		// Default animation to be applied to "move|undo|redo"
-																	// set to null if no animation is desired
+		stroke			: "#FFF",									// default: "#000"
+		strokeWidth		: 1,										// default: 1 ("small (1)|medium (4)|big (8)|huge (12)")
+		fill			: "#FFF",									// default: "#FFF"
+		lineCap			: "round",									// default: "butt" (“butt|square|round”)
+		lineJoin		: "round",									// default: "butt" (“bevel|round|miter”) ???
+		arrowEnd		: "classic-medium-medium",					// default: "none" ("classic|block|open|oval|diamond|none[-wide|narrow|midium[-long|short|midium]]"
+		fontSize		: 12,										// default: "10"
+		font			: null,										// default: '10px "Arial"' (NOTE the apostrophes!)
+		fontFamily		: null,										// default: '"Arial"' (NOTE the apostrophes!)
+		fontStyle		: null,										// default: "normal" ("normal|italic|oblique|inherit")
+		fontWeight		: null,										// default: 400 ("normal|bold|bolder|lighter|100|200|300|400|500|600|700|800|900|inherit")
+		textAnchor		: "start",									// default: "middle" ("start|middle|end|inherit")
+		// NOTE: text-decoration not (yet) implemented in Raphael?
+		textDecoration	: null,										// default: "none" ("none|[underline||overline||line-through||blink]|inherit")
+		animation		: {											// Default animation to be applied to freeTransform or "false" to disable
+							delay: 100,
+							easing: "<>"
+						}											// set to null if no animation wanted
 	};
 
 	$.fn.removeClasses = function ( mask ) {
@@ -669,90 +1047,501 @@
 	};
 
 	// Editing Events Functions
-	function SetModeEvents( self ) {
+	function SetModeEvents( self, ignoredElement ) {
 		if ( self.options.editable ) {
-			var shapes = self.shapes;
+			self.elements.map(function( element ) {
+				if ( element.id !== ( ( ignoredElement ) ? ignoredElement.id : -1 ) ) {
+					SetElementEvents( self, element, self._mode );
+				}
+			});
+		}
+	}
 
-			for ( var i=0;i<shapes.length;i++ ) {
-				var shape = shapes[i];
-				switch( self._mode ) {
+	function SetElementEvents( self, element, mode ) {
+		switch ( mode ) {
+		case "move":
+			if ( element.freeTransform == null ) {
+				self.initMove( element.id, true );
+			}
+			element.attr( { cursor: "pointer" } );
+			break;
+		case "text":
+			element.attr( { cursor: "text" } );
+			break;
+		case "cut":
+			element.hover( OnCutIn, OnCutOut );
+			element.attr( { cursor: "pointer" } );
+			break;
+		case "pen":
+		case "line":
+		case "arrow":
+		case "circle":
+		case "ellipse":
+		case "rect":
+			element.attr( { cursor: "crosshair" } );
+			break;
+		default:
+			// Ignore everything else
+		}
+	}
+
+	function ClearModeEvents( self, ignoredElement ) {
+		if ( self.options.editable ) {
+			self.elements.map(function( element ) {
+				if ( element.id !== ( ( ignoredElement ) ? ignoredElement.id : -1 ) ) {
+					ClearElementEvents( element, true );	// keep freeTransform
+				} else {
+					ClearElementEvents( element );		// freeTransform.unplug()
+				}
+				switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 					case "move":
-						ResetShapeEvents( shape );
-						shape.drag( OnDrag, OnDragStart, OnDragEnd );
-						shape.attr( { cursor: "move" } );
+					case "cut":
+						element.attr( { cursor: "pointer" } );
 						break;
 					case "text":
-						ResetShapeEvents( shape );
-						shape.attr( { cursor: "text" } );
-						break;
-					case "cut":
-						ResetShapeEvents( shape );
-						shape.hover( OnCutIn, OnCutOut );
-						shape.attr( { cursor: "pointer" } );
-						break;
-					case "pen":
-					case "line":
-					case "arrow":
-					case "circle":
-					case "ellipse":
-					case "rect":
-						ResetShapeEvents( shape );
-						shape.attr( { cursor: "crosshair" } );
+						element.attr( { cursor: "text" } );
 						break;
 					default:
-						// Ignore everything else
+						element.attr( { cursor: "crosshair" } );
+				}
+			});
+		}
+	}
+
+	function ClearElementEvents( element, noUnplug ) {
+		if ( element.events ) {
+			var eventsLength = element.events.length;
+			for ( var i=0;i<eventsLength;i++ ) {
+				switch ( element.events[i].f ) {
+				// Remove only our events
+				case OnCutIn:
+				case OnCut:
+				case OnCutOut:
+				case OnMouseDown:
+				case OnMouseMove:
+				case OnMouseUp:
+					element[ "un"+element.events[i].name ]( element.events[i].f );
+					if ( element.events ) {
+						eventsLength = element.events.length;
+					} else {
+						eventsLength = 0;
+					}
+					i--;
+					break;
+				default:
+					// Ignore
 				}
 			}
 		}
-	}
-
-	function ResetShapeEvents( shape ) {
-		shape.unhover( OnCutIn, OnCutOut );
-		shape.undrag();
-	}
-
-	function ResetModeEvents( self ) {
-		if ( self.options.editable ) {
-			var shapes = self.shapes;
-
-			for ( var i=0;i<shapes.length;i++ ) {
-				var shape = shapes[i];
-				ResetShapeEvents( shape );
-				shape.attr( { cursor: "crosshair" } );
-			}
+		if ( element.freeTransform && !noUnplug ) {
+			element.freeTransform.unplug();
 		}
 	}
 
-	function OnCutIn() {
-		var elem = $( this.node );
-		var self = elem.parent().parent().parent().data( "RaphBoard" );
+	function InitMove( self, element ) {
+		var moved = false;
+		return self.paper.freeTransform(
+			element,
+			{
+				animate		: false,
+				attrs: {	// Attributes for handles
+					fill	: "#bada55",
+					stroke	: "#000"
+				},
+				drag: [
+					"center",
+					"self"
+				],
+				draw		: ( element.type === "circle" ) ? [ "bbox" ] : [ "circle", "bbox" ],
+				keepRatio	: ( element.type === "circle" ) ? true : false,
+				rotate		: ( element.type === "circle" ) ? false : [ "axisX" ],
+				scale		: [
+					"bboxCorners",
+					"bboxSides"
+				],
+				size: {
+					axes		: 5,
+					bboxCorners	: 5,
+					bboxSides	: 5,
+					center		: 5
+				}
+			},
+			function( ft, events ) {
+				switch ( events[0] ) {	// Single events only
+				case "init":
+					moved = false;
+					break;
+				case "drag start":
+					ft.hideHandles({ undrag: false });
+					element.attr({ cursor: "move" });
+					break;
+				case "drag end":
+					ft.showHandles();
+					element.attr({ cursor: "pointer" });
+					break;
+				case "rotate start":
+					if ( ft.handles.center ) {
+						ft.handles.center.disc.hide();
+					}
+					if ( ft.bbox ) {
+						ft.bbox.hide();
+						if ( ft.handles.bbox ) {
+							ft.handles.bbox.map(function( handle ) {
+								handle.element.hide();
+							});
+						}
+					}
+					element.attr({ cursor: "pointer" });
+					break;
+				case "rotate end":
+					if ( ft.handles.center ) {
+						ft.handles.center.disc.show();
+					}
+					if ( ft.bbox ) {
+						ft.bbox.show();
+						if ( ft.handles.bbox ) {
+							ft.handles.bbox.map(function( handle ) {
+								handle.element.show();
+							});
+						}
+					}
+					element.attr({ cursor: "pointer" });
+					break;
+				case "scale start":
+					if ( ft.handles.center ) {
+						ft.handles.center.disc.hide();
+					}
+					[ 'x', 'y' ].map(function(axis) {
+						if ( ft.handles[axis] ) {
+							ft.handles[axis].disc.hide();
+							ft.handles[axis].line.hide();
+						}
+					});
+					if ( ft.bbox ) {
+						var selectedHandle;
+						var cursor = "";
 
-		this.mousedown( OnCut );
+						self.paper.getElementsByPoint( ft.o.handlePos.cx, ft.o.handlePos.cy ).forEach(function( element ) {
+							if ( element.type === "rect" ) {
+								selectedHandle = element.id;
+								return false;
+							}
+						});
+						if ( ft.handles.bbox ) {
+							ft.handles.bbox.map(function( handle ) {
+								if ( selectedHandle !== handle.element.id ) {
+									handle.element.hide();
+								} else {
+									// // Position of Handle
+									// // x = -1	// "W"
+									// // x = 0	// ""
+									// // x = 1	// "E"
+									// // y = -1	// "N"
+									// // y = 0	// ""
+									// // y = 1	// "S"
+									// switch ( handle.y ) {
+									// case -1:
+									// 	cursor = "n";
+									// 	break;
+									// case 1:
+									// 	cursor = "s";
+									// 	break;
+									// default:	// 0
+									// 	// ""
+									// }
+									// switch ( handle.x ) {
+									// case -1:
+									// 	cursor += "w";
+									// 	break;
+									// case 1:
+									// 	cursor += "e";
+									// 	break;
+									// default:	// 0
+									// 	// ""
+									// }
+									// handle.element.attr({
+									// 	// ne-resize
+									// 	// nw-resize
+									// 	// se-resize
+									// 	// sw-resize
+									// 	// e-resize
+									// 	// n-resize
+									// 	// s-resize
+									// 	// w-resize
+									// 	cursor: cursor += "-resize"
+									// });
+								}
+							});
+						}
+					}
+					if ( ft.circle ) {
+						ft.circle.hide();
+					}
+					break;
+				case "scale end":
+					if ( ft.handles.center ) {
+						ft.handles.center.disc.show();
+					}
+					[ 'x', 'y' ].map(function( axis ) {
+						if ( ft.handles[axis] ) {
+							ft.handles[axis].disc.show();
+							ft.handles[axis].line.show();
+						}
+					});
+					if ( ft.bbox ) {
+						// ft.bbox.show();
+						if ( ft.handles.bbox ) {
+							ft.handles.bbox.map(function( handle ) {
+								handle.element.show();
+							});
+						}
+					}
+					if ( ft.circle ) {
+						ft.circle.show();
+					}
+					element.attr({ cursor: "pointer" });
+					break;
+				default:	// "drag|rotate|scale|apply..."
+					moved = true;
+				}
+				switch ( events[0].split(" ")[1] ) {
+				case "start":
+					if ( EventHandler( self, "before_move" ) ) {
+						HideAllHandles( self, element );
+						PushToBuffer( self, self._mode, element );
+					}
+					break;
+				case "end":
+					var shape = self.undoBuffer.pop();
+					if ( moved ) {
+						// var a = shape.element.attrs;
+						// var fa = ft.attrs;
 
-		SetCutAttributes( self, this );
+						// switch( shape.element.type ) {	// "path|circle|ellipse|rect|text"
+						// /* freeTransform attributes
+						// 	ft.attrs.x
+						// 	ft.attrs.y
+						// 	ft.attrs.ratio (?)
+						// 	ft.attrs.rotate
+						// 	ft.attrs.center.x
+						// 	ft.attrs.center.y
+						// 	ft.attrs.scale.x
+						// 	ft.attrs.scale.y
+						// 	ft.attrs.size.x
+						// 	ft.attrs.size.y
+						// 	ft.attrs.translate.x
+						// 	ft.attrs.translate.y
+						// 	ft.items.length
+						// */
+						// case "circle":
+						// 	a.cx = fa.center.x + fa.translate.x;
+						// 	a.cy = fa.center.y + fa.translate.y;
+						// 	a.r = ( fa.size.x / 2 );
+						// 	break;
+						// case "ellipse":
+						// 	a.cx = fa.center.x + fa.translate.x;
+						// 	a.cy = fa.center.y + fa.translate.y;
+						// 	a.rx = fa.size.x * fa.scale.x;
+						// 	a.ry = fa.size.y * fa.scale.y;
+						// 	break;
+						// case "text":
+						// 	a.x = fa.center.x + fa.translate.x - ( fa.size.x / 2 );
+						// 	a.y = fa.center.y + fa.translate.y - ( fa.size.y / 2 );	// !!!
+						// 	break;
+						// case "rect":
+						// 	a.width = fa.size.x * fa.scale.x;
+						// 	a.height = fa.size.y * fa.scale.y;
+						// default:	// "path"
+						// 	a.x = fa.center.x + fa.translate.x - ( fa.size.x / 2 );
+						// 	a.y = fa.center.y + fa.translate.y - ( fa.size.y / 2 );
+						// }
+						// a.sx = fa.scale.x;
+						// a.sy = fa.scale.y;
+						// a.ratio = fa.ratio;
+						// a.rotate = fa.rotate;
+
+						shape.element.data.ft.attrs = GetFreeTransformAttrs( self, element );
+						delete shape.element.attrs.cursor;
+
+						self.undoBuffer.push( shape );
+						self.clearRedo();
+
+						moved = false;
+					}
+					EventHandler( self, "after_move" );
+					break;
+				default:
+					// Ignore the rest
+				}
+			}
+		);
 	}
 
-	function OnCut() {
-		var elem = $( this.node );
+	function SelectAllElements( self, ignoredElement ) {
+		self.elements.map(function( element ) {
+			if ( element.id !== ( ( ignoredElement ) ? ignoredElement.id : -1 ) ) {
+				SelectElement( self, element );
+			}
+		});
+
+		return ignoredElement;
+	}
+
+	function SelectElement( self, element ) {
+		if ( EventHandler( self, "before_select" ) ) {
+			element.attr({ cursor: "move" });
+			self.select( element.id );
+		}
+
+		EventHandler( self, "after_select" );
+
+		return element;
+	}
+
+	function DeselectAllElements( self, ignoredElement ) {
+		self.elements.map(function( element ) {
+			if ( element.id !== ( ( ignoredElement ) ? ignoredElement.id : -1 ) ) {
+				DeselectElement( self, element );
+			}
+		});
+
+		return ignoredElement;
+	}
+
+	function DeselectElement( self, element ) {
+		if ( EventHandler( self, "before_deselect" ) ) {
+			self.deselect( element.id );
+		}
+
+		EventHandler( self, "after_deselect" );
+
+		return element;
+	}
+
+	function ShowAllHandles( self, ignoredElement ) {
+		var elements = self.elements;
+
+		elements.map(function( element ) {
+			if ( element.id !== ( ( ignoredElement ) ? ignoredElement.id : -1 ) ) {
+				ShowHandles( self, element );
+			}
+		});
+
+		return ignoredElement;
+	}
+
+	function ShowHandles( self, element ) {
+		if ( EventHandler( self, "before_show_handles" ) ) {
+			if ( element.freeTransform ) {
+				var ft = element.freeTransform;
+
+				if ( ft.handles.center ) {
+					ft.handles.center.disc.show();
+				}
+				if ( ft.bbox ) {
+					ft.bbox.show();
+					if ( ft.handles.bbox ) {
+						ft.handles.bbox.map(function( handle ) {
+							handle.element.show();
+						});
+					}
+				}
+				[ 'x', 'y' ].map(function( axis ) {
+					if ( ft.handles[axis] ) {
+						ft.handles[axis].disc.show();
+						ft.handles[axis].line.show();
+					}
+				});
+				if ( ft.circle ) {
+					ft.circle.show();
+				}
+			}
+		}
+
+		EventHandler( self, "after_show_handles" );
+
+		return element;
+	}
+
+	function HideAllHandles( self, ignoredElement ) {
+		var elements = self.elements;
+
+		elements.map(function( element ) {
+			if ( element.id !== ( ( ignoredElement ) ? ignoredElement.id : -1 ) ) {
+				HideHandles( self, element );
+			}
+		});
+
+		return ignoredElement;
+	}
+
+	function HideHandles( self, element ) {
+		if ( EventHandler( self, "before_hide_handles" ) ) {
+			if ( element.freeTransform ) {
+				var ft = element.freeTransform;
+
+				if ( ft.handles.center ) {
+					ft.handles.center.disc.hide();
+				}
+				if ( ft.bbox ) {
+					ft.bbox.hide();
+					if ( ft.handles.bbox ) {
+						ft.handles.bbox.map(function( handle ) {
+							handle.element.hide();
+						});
+					}
+				}
+				[ 'x', 'y' ].map(function( axis ) {
+					if ( ft.handles[axis] ) {
+						ft.handles[axis].disc.hide();
+						ft.handles[axis].line.hide();
+					}
+				});
+				if ( ft.circle ) {
+					ft.circle.hide();
+				}
+			}
+		}
+
+		EventHandler( self, "after_hide_handles" );
+
+		return element;
+	}
+
+	function OnCutIn( e ) {
+		// e.stopPropagation();
+		var element = this;
+		var elem = $( element.node );
 		var self = elem.parent().parent().parent().data( "RaphBoard" );
 
-		this.unmousedown( OnCut )
-			.unhover( OnCutIn, OnCutOut );
+		element.mousedown( OnCut );
+
+		SetCutAttributes( self, element );
+	}
+
+	function OnCut( e ) {
+		// e.stopPropagation();
+		var element = this;
+		var elem = $( element.node );
+		var self = elem.parent().parent().parent().data( "RaphBoard" );
 
 		if ( EventHandler( self, "before_cut" ) ) {
-			ResetCutAttributes( self, this );
-			self.cut( this.id );
+			ClearElementEvents( element );
+			ResetCutAttributes( self, element );
+			self.cut( element.id );
 		}
 		EventHandler( self, "after_cut" );
 	}
 
-	function OnCutOut() {
-		var elem = $( this.node );
+	function OnCutOut( e ) {
+		// e.stopPropagation();
+		var element = this;
+		var elem = $( element.node );
 		var self = elem.parent().parent().parent().data( "RaphBoard" );
 
-		this.unmousedown( OnCut );
+		element.unmousedown( OnCut );
 
-		ResetCutAttributes( self, this );
+		ResetCutAttributes( self, element );
 	}
 
 	function SetCutAttributes( self, element ) {
@@ -766,10 +1555,10 @@
 		}
 		element.attr( {
 			"stroke"			: "#F00",
-			"stroke-width"		: self.cutStrokeWidth < 4 ? 4 : self.cutStrokeWidth,
+			"stroke-width"		: 1,
 			"stroke-dasharray"	: "-"
 		});
-		if ( element.type != "path" && element.attr( "fill" ) != "none" ) element.animate( { "fill-opacity": 0.5 }, 100 ); 
+		if ( element.type != "path" && element.attr( "fill" ) != "none" ) element.animate( { "fill-opacity": 0.5 }, 100 );
 	}
 
 	function ResetCutAttributes( self, element ) {
@@ -783,116 +1572,27 @@
 			"stroke"			: self.cutStroke,
 			"stroke-width"		: self.cutStrokeWidth,
 			"stroke-dasharray"	: self.cutStrokeDash
-		}); 
-	}
-
-	function OnDragStart( x, y, e ) {
-		var elem = $( this.node );
-		var self = elem.parent().parent().parent().data( "RaphBoard" );
-		var shape = this;
-
-		if ( EventHandler( self, "before_start" ) ) {
-			InitDragStart( shape );
-			self.dragStroke = shape.attr( "stroke" );
-			self.dragOpacity = shape.attr( "fill-opacity" );
-			self.dragStrokeWidth = shape.attr( "stroke-width" );
-			self.dragStrokeDash = shape.attr( "stroke-dasharray" );
-			shape.attr( {
-				"stroke"			: "#FFF",
-				"stroke-width"		: 1,
-				"stroke-dasharray"	: "-"
-			});
-			shape.animate( { "fill-opacity": 0 }, 100 );
-		}
-		EventHandler( self, "after_start" ); 
-	}
-
-	function InitDragStart( shape ) {
-		switch( shape.type ) {	// "path|circle|ellipse|rect|text"
-			case "path":
-				var t = shape.matrix.toTransformString().replace( "t", "" ).split( "," );
-				shape.ox = t[0] ? t[0] : 0;
-				shape.oy = t[1] ? t[1] : 0;
-				break;
-			case "circle":
-			case "ellipse":
-				shape.ox = shape.attr( "cx" );
-				shape.oy = shape.attr( "cy" );
-				break;
-			default:
-				shape.ox = shape.attr( "x" );
-				shape.oy = shape.attr( "y" );
-		}
-	}
-
-	function OnDrag( dx, dy, x, y, e ) {
-		var elem = $( this.node );
-		var self = elem.parent().parent().parent().data( "RaphBoard" );
-		var shape = this;
-
-		if ( EventHandler( self, "before_change" ) ) {
-			UpdateDrag( self, shape, dx, dy );
-		}
-		EventHandler( self, "after_change" );
-	}
-
-	function UpdateDrag( self, shape, dx, dy ) {
-		switch( shape.type ) {
-			case "path":
-				shape.transform( "t" +
-					( parseInt( shape.ox ) + parseInt( dx ) ) + "," +
-					( parseInt( shape.oy ) + parseInt( dy ) )
-				);
-				break;
-			case "circle":
-			case "ellipse":
-				shape.attr( { cx: shape.ox + dx, cy: shape.oy + dy } );
-				break;
-			default:
-				shape.attr( { x: shape.ox + dx, y: shape.oy + dy } );
-		}
-		self.paper.safari();
-	}
-
-	function OnDragEnd( e ) {
-		var elem = $( this.node );
-		var self = elem.parent().parent().parent().data( "RaphBoard" );
-		var shape = this;
-
-		if ( EventHandler( self, "before_end" ) ) {
-			shape.animate( { "fill-opacity": self.dragOpacity }, 100 );
-			shape.attr( {
-				"stroke"			: self.dragStroke,
-				"stroke-width"		: self.dragStrokeWidth,
-				"stroke-dasharray"	: self.dragStrokeDash
-			});
-			PushToBuffer( self, "move", shape );
-		}
-		EventHandler( self, "after_end" ); 
+		});
 	}
 
 	function InitBoardEvents( elem ) {
 		var self = elem.parent().data( "RaphBoard" );
-		var shapes = self.shapes;
 
 		switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 			case "move":
 			case "cut":
-				// elem.attr( "style", "cursor: pointer;" );
 				elem.css( { cursor: "pointer" } );
 				break;
 			case "text":
-				// elem.attr( "style", "cursor: text;" );
 				elem.css( { cursor: "text" } );
 				break;
 			default:
-				// elem.attr( "style", "cursor: crosshair;" );
 				elem.css( { cursor: "crosshair" } );
 		}
 
 		elem.unbind( "mouseenter" )
 			.mouseleave( OnMouseLeave );
-		if ( self._mode != "move" && self._mode != "cut" ) elem.mousedown( OnMouseDown );
+		if ( self._mode != "cut" ) elem.mousedown( OnMouseDown );
 	}
 
 	function EventHandler( self, eventType ) {
@@ -921,42 +1621,59 @@
 		var self = elem.parent().data( "RaphBoard" );
 
 		self.mouseDownX = e.pageX - self.left();
-		self.mouseDownY = e.pageY - self.top() - ( self.options.showToolBar ? self.toolBar.height() : 0 );
+		self.mouseDownY = e.pageY - self.top() - ( self.toolBar ? self.toolBar.height() : 0 );
 
 		if ( EventHandler( self, "before_start" ) ) {
-			var shapes = self.shapes;
+			var elements = self.elements;
 			switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
-				case "pen":
-					shapes.push( StartLine( self, self.mouseDownX, self.mouseDownY ) );
-					break;
-				case "line":
-					shapes.push( StartLine( self, self.mouseDownX, self.mouseDownY ) );
-					break;
-				case "arrow":
-					shapes.push( StartLine( self, self.mouseDownX, self.mouseDownY ).attr( { "arrow-end": self.options.arrowEnd } ) );
-					break;
-				case "circle":
-					shapes.push( StartCircle( self, self.mouseDownX, self.mouseDownY ) );
-					break;
-				case "ellipse":
-					shapes.push( StartEllipse( self, self.mouseDownX, self.mouseDownY ) );
-					break;
-				case "rect":
-					shapes.push( StartRectangle( self, self.mouseDownX, self.mouseDownY ) );
-					break;
-				case "text":
-					GetText( self, self.mouseDownX, self.mouseDownY );
-					break;
-				default: //	"move"
+			case "pen":
+				elements.push( StartLine( self, self.mouseDownX, self.mouseDownY ) );
+				break;
+			case "line":
+				elements.push( StartLine( self, self.mouseDownX, self.mouseDownY ) );
+				break;
+			case "arrow":
+				elements.push(
+					StartLine( self, self.mouseDownX, self.mouseDownY )
+						.attr( { "arrow-end": self.options.arrowEnd } )
+				);
+				break;
+			case "circle":
+				elements.push( StartCircle( self, self.mouseDownX, self.mouseDownY ) );
+				break;
+			case "ellipse":
+				elements.push( StartEllipse( self, self.mouseDownX, self.mouseDownY ) );
+				break;
+			case "rect":
+				elements.push( StartRectangle( self, self.mouseDownX, self.mouseDownY ) );
+				break;
+			case "text":
+				GetText( self, self.mouseDownX, self.mouseDownY );
+				break;
+			default: //	"move"
+				var element = self.paper.getElementByPoint( e.pageX, e.pageY );
+				if ( element == null ) {
+					DeselectAllElements( self );
+					self.multiSelect = StartRectangle( self, self.mouseDownX, self.mouseDownY );
+					self.multiSelect.attr({
+						"fill"				: "#bada55",
+						"fill-opacity"		: .1,
+						"stroke"			: "#bada55",
+						"stroke-width"		: 1,
+						"stroke-dasharray"	: "-"
+					});
+				}
+			}
+
+			if ( self._mode != "text" && self._mode != "cut" ) {
+				if ( self._mode != "move" || self.multiSelect != null ) {
+					elem.mousemove( OnMouseMove );
+				}
+				elem.mouseup( OnMouseUp );
 			}
 		}
 
 		EventHandler( self, "after_start" );
-
-		if ( self._mode != "move" && self._mode != "text" && self._mode != "cut" ) {
-			elem.mousemove( OnMouseMove )
-				.mouseup( OnMouseUp );
-		}
 	}
 
 	function OnMouseMove( e ) {
@@ -964,42 +1681,47 @@
 		var self = elem.parent().data( "RaphBoard" );
 
 		if ( EventHandler( self, "before_change" ) ) {
-			var shape = self.shapes[ self.shapes.length - 1 ];
+			var element = self.elements[ self.elements.length - 1 ];
 
 			var moveX = e.pageX - self.left();
-			var moveY = e.pageY - self.top() - ( self.options.showToolBar ? self.toolBar.height() : 0 );
+			var moveY = e.pageY - self.top() - ( self.toolBar ? self.toolBar.height() : 0 );
 
 			var width = moveX - self.mouseDownX;
 			var height = moveY - self.mouseDownY;
 
 			switch( self._mode ) {	// "move|pen|line|arrow|circle|ellipse|rect|text|cut"
 				case "pen":
-					shape.attr( "path", shape.attr( "path" ) + "L" + moveX + "," + moveY );
+					element.attr( "path", element.attr( "path" ) + "L" + moveX + "," + moveY );
 					break;
 				case "line":
-					shape.attr( "path", "M" + self.mouseDownX + " " + self.mouseDownY + "L" + moveX + "," + moveY );
+					element.attr( "path", "M" + self.mouseDownX + " " + self.mouseDownY + "L" + moveX + "," + moveY );
 					break;
 				case "arrow":
-					shape.attr( "path", "M" + self.mouseDownX + " " + self.mouseDownY + "L" + moveX + "," + moveY );
+					element.attr( "path", "M" + self.mouseDownX + " " + self.mouseDownY + "L" + moveX + "," + moveY );
 					break;
 				case "circle":
-					shape.attr( "r", Math.max( Math.abs( width ), Math.abs( height ) ) );
+					element.attr( "r", Math.max( Math.abs( width ), Math.abs( height ) ) );
 					break;
 				case "ellipse":
-					shape.attr( "rx", Math.abs( width ) )
+					element.attr( "rx", Math.abs( width ) )
 						 .attr( "ry", Math.abs( height ) );
 					break;
 				case "rect":
-					if ( width < 0 ) shape.attr( "x", moveX );
-					if ( height < 0 ) shape.attr( "y", moveY );
-					shape.attr( "width", Math.abs( width ) )
+					if ( width < 0 ) element.attr( "x", moveX );
+					if ( height < 0 ) element.attr( "y", moveY );
+					element.attr( "width", Math.abs( width ) )
 						 .attr( "height", Math.abs( height ) );
 					break;
 				case "text":
 				  	// No resizing of text, just ignore the event
 					break;
 				default: //	"move"
-					// Just moving the element
+					if ( self.multiSelect ) {
+						if ( width < 0 ) self.multiSelect.attr( "x", moveX );
+						if ( height < 0 ) self.multiSelect.attr( "y", moveY );
+						self.multiSelect.attr( "width", Math.abs( width ) )
+							 			.attr( "height", Math.abs( height ) );
+					}
 			}
 		}
 		EventHandler( self, "after_change" );
@@ -1009,86 +1731,175 @@
 		var elem = $( e.delegateTarget );
 		var self = elem.parent().data( "RaphBoard" );
 
+		self.mouseUpX = e.pageX - self.left();
+		self.mouseUpY = e.pageY - self.top() - ( self.toolBar ? self.toolBar.height() : 0 );
+
 		if ( EventHandler( self, "before_end" ) ) {
-			if ( self._mode != "move" && self._mode != "text" && self._mode != "cut" ) {
-				var shapes = self.shapes;
-				elem.unbind( "mouseup" )
-					.unbind( "mousemove" );
-				shape = shapes.pop();
-				var BBox = shape.getBBox();
+			switch ( self._mode ) {
+			case "cut":
+			case "text":
+				break;
+			case "move":
+				if ( self.multiSelect ) {
+					var BBox = self.multiSelect.getBBox();
+					self.multiSelect.remove();
+					self.multiSelect = null;
+
+					if ( BBox.width !== 0 && BBox.height !== 0 ) {
+						self.elements.map(function( element ) {
+							if ( Raphael.isBBoxIntersect( BBox, element.getBBox() ) ) {
+								SelectElement( self, element );
+							}
+						});
+					}
+				}
+				SetModeEvents( self );
+				break;
+			default:
+				var elements = self.elements;
+				element = elements.pop();
+				var BBox = element.getBBox();
 
 				if ( BBox.width == 0 && BBox.height == 0 ) {
-					shape.remove();
+					element.remove();
 				} else {
-					shapes.push( shape );
-					PushToBuffer( self, self._mode, shape );
+					elements.push( element );
+					PushToBuffer( self, self._mode, element );
 				}
 			}
+
+			if ( self._mode != "text" && self._mode != "cut" ) {
+				elem.unbind( "mousemove" )
+					.unbind( "mouseup" );
+			}
 		}
+
 		EventHandler( self, "after_end" );
 	}
 
 	function OnMouseLeave( e ) {
+		e.stopPropagation();
 		var elem = $( e.delegateTarget );
 
 		elem.unbind( "mouseleave" )
 			.removeClass( "cursor-*" );
 		var self = elem.parent().data( "RaphBoard" );
-		if ( self._mode != "move" && self._mode != "cut" ) elem.unbind( "mousedown" );
+		if ( self._mode != "cut" ) elem.unbind( "mousedown" );
 
 		elem.mouseenter( OnMouseEnter );
 	}
 
-	function PushToBuffer( self, mode, shape ) {
+	// Shape Drawing Functions
+	function PreviousShapeInBuffer( buffer, id ) {
+		for ( var i=buffer.length-1;i>=0;i-- ) {
+			var prev = buffer[i].element;
+			if ( prev.id == id ) {
+				return prev;
+			}
+		}
+		return null;
+	}
+
+	function PushToBuffer( self, mode, element ) {
 		var element = {
 			command		: mode,
-			shape		: CloneShape( shape )
+			element		: CloneElement( self, element )
 		};
 
 		self.undoBuffer.push( element );
-		if ( mode != "cut" && mode != "clear" && mode != "move" ) self.clearRedo();
-	}
 
-	function CloneShape( shape ) {
-		return {
-			id			: shape.id,
-			type		: shape.type,
-			attrs		: SerializeAttributes( shape ),
-			transform	: shape.matrix.toTransformString()
+		switch ( mode ) {
+		case "cut":
+		case "clear":
+		case "move":
+		case "modify":
+		case "transform":
+			break;
+		default:
+			self.clearRedo();
 		}
 	}
 
-	function SerializeAttributes( shape ) {
-		var attrs = new Object;
+	function SetFreeTransformAttrs( self, element, attrs ) {
+		var unplug = false;
 
-		$.each( shape.attrs, function ( key, value ) {
-			attrs[ key ] = value;
-		});
+		var ft = element.freeTransform;
+		if ( !ft ) {
+			unplug = true;
+			ft = self.paper.freeTransform( element ).setOpts({
+				animate: self.options.animation
+			});
+		}
 
-		return attrs; 
+		ft.attrs = JSON.parse( JSON.stringify( attrs ) );
+		ft.apply();
+
+		if ( unplug ) {
+			ft.unplug();
+		}
+
+		return element;
+	}
+
+	function GetFreeTransformAttrs( self, element ) {
+		var attrs;
+		var unplug = false;
+
+		var ft = element.freeTransform;
+		if ( !ft ) {
+			unplug = true;
+			ft = self.paper.freeTransform( element );
+		}
+
+		attrs = JSON.parse( JSON.stringify( ft.attrs ) );
+
+		if ( unplug ) {
+			ft.unplug();
+		}
+
+		return attrs;
+	}
+
+	function CloneElement( self, element ) {
+		var clone = {
+			data : {
+				ft: {
+					attrs: GetFreeTransformAttrs( self, element )
+				}
+			},
+			id			: element.id,
+			type		: element.type,
+			attrs		: JSON.parse( JSON.stringify( element.attrs ) ),
+			transform	: element.matrix.toTransformString()
+		};
+
+		// Prevent freeTransform errors
+		delete clone.attrs.transform;
+
+		return clone;
 	}
 
 	function StartLine( self, x1, y1 ) {
-		var shape = self.paper.path( "M" + x1 + " " + y1 );
+		var element = self.paper.path( "M" + x1 + " " + y1 );
 
 		if ( self.options.strokeWidth == 0 ) {
 			self.options.stroke = self.options.fill;
 			self.options.strokeWidth = 1;
 		}
-		shape.attr({
+		element.attr({
 			"stroke"			: self.options.stroke,
 			"stroke-width"		: self.options.strokeWidth,
 			"stroke-linecap"	: self.options.lineCap,
 			"stroke-linejoin"	: self.options.lineJoin
 		});
 
-		return shape; 
+		return element;
 	}
 
 	function StartCircle( self, x, y ) {
-		var shape = self.paper.circle( x, y, 0 );
+		var element = self.paper.circle( x, y, 0 );
 
-		shape.attr({
+		element.attr({
 			"fill"				: self.options.fill,
 			"stroke"			: self.options.stroke,
 			"stroke-width"		: self.options.strokeWidth,
@@ -1096,13 +1907,13 @@
 			"stroke-linejoin"	: self.options.lineJoin
 		});
 
-		return shape; 
+		return element;
 	}
 
 	function StartEllipse( self, x, y ) {
-		var shape = self.paper.ellipse( x, y, 0, 0 );
+		var element = self.paper.ellipse( x, y, 0, 0 );
 
-		shape.attr({
+		element.attr({
 			"fill"				: self.options.fill,
 			"stroke"			: self.options.stroke,
 			"stroke-width"		: self.options.strokeWidth,
@@ -1110,13 +1921,13 @@
 			"stroke-linejoin"	: self.options.lineJoin
 		});
 
-		return shape; 
+		return element;
 	}
 
 	function StartRectangle( self, x, y ) {
-		var shape = self.paper.rect( x, y, 0, 0 );
+		var element = self.paper.rect( x, y, 0, 0 );
 
-		shape.attr({
+		element.attr({
 			"fill"				: self.options.fill,
 			"stroke"			: self.options.stroke,
 			"stroke-width"		: self.options.strokeWidth,
@@ -1124,90 +1935,91 @@
 			"stroke-linejoin"	: "miter"
 		});
 
-		return shape; 
+		return element;
 	}
 
 	function GetText( self, x, y ) {
-		text = prompt(
+		var text = prompt(
 			"Please enter text:\n" +
-			"You can specify text size by prepending\n" +
-			"text size as number enclosed in {}",
+			"Optionally, you can specify text size by\n" +
+			"prepending text size as number enclosed in {}",
 			"{" + self.options.fontSize + "}Write some text here..."
 		);
 
 		// Expects text in format "{fontSize}text"; "{fontSize}" is optional
 		if ( text && text != "" ) {
-			var subText = text;
+			var size = self.options.fontSize;
 			if ( text[0] == "{" ) {
-				var size = text.substring( 1, text.indexOf( "}" ) );
-				if ( size != "" && !isNaN( size ) ) {
-					var fontSize = Math.abs( parseInt( size ) );
-					self.options.fontSize = ( fontSize == 0 ) ? 12 : fontSize;
-					subText = text.substring( text.indexOf( "}" ) + 1 );
-				}
+				size = text.substring( 1, text.indexOf( "}" ) );
+				text = text.substring( text.indexOf( "}" ) + 1 );
 			}
-			if ( subText != "" ) {
-				var shape = DrawText( self, x, y, subText );
-				self.shapes.push( shape );
-				PushToBuffer( self, "text", shape );
-
-				return shape;
-			}
+			return self.text( x, y, text, size );
 		}
 	}
 
 	function DrawText( self, x, y, text ) {
-		var shape = self.paper.text( x, y, text );
+		var element = self.paper.text( x, y, text );
+		var o = self.options;
 
-		shape.attr({
-			"fill"				: self.options.fill,
-			"stroke"			: self.options.stroke,
-			"stroke-width"		: self.options.strokeWidth,
-			"stroke-linecap"	: self.options.lineCap,
-			"stroke-linejoin"	: self.options.lineJoin,
-			"font-size"			: self.options.fontSize,
-			"text-anchor"		: self.options.textAnchor 
+		element.attr({
+			"fill"				: o.fill,
+			"stroke"			: o.stroke,
+			"stroke-width"		: o.strokeWidth,
+			"stroke-linecap"	: o.lineCap,
+			"stroke-linejoin"	: o.lineJoin,
+			"font-size"			: o.fontSize
 		});
+		if ( o.font ) element.attr({ "font"							: '"' + o.fontSize + 'px "' + o.font + '"' });
+		if ( o.fontFamily ) element.attr({ "font-family"			: o.fontFamily });
+		if ( o.fontStyle ) element.attr({ "font-style"				: o.fontStyle });
+		if ( o.fontWeight ) element.attr({ "font-weight"			: o.fontWeight });
+		if ( o.textAnchor ) element.attr({ "text-anchor"			: o.textAnchor });
+		if ( o.textDecoration ) element.attr({ "text-decoration"	: o.textDecoration });
 
-		return shape; 
+		return element;
 	}
 
 	function Draw( self, element ) {
-		var shape;
+		var el;
+		var id;
+		var elements = self.elements;
+		var a = element.attrs;
 
 		switch( element.type ) {		// "pen|line|arrow|circle|ellipse|rect|text"
 			case "circle":
-				shape = self.paper.circle( 0, 0, 0 );
+				el = self.paper.circle( a.cx, a.cy, a.r );
 				break;
 			case "ellipse":
-				shape = self.paper.ellipse( 0, 0, 0, 0 );
+				el = self.paper.ellipse( a.cx, a.cy, a.rx, a.ry );
 				break;
 			case "rect":
-				shape = self.paper.rect( 0, 0, 0, 0 );
+				el = self.paper.rect( a.x, a.y, a.width, a.height );
 				break;
 			case "text":
-				shape = self.paper.text( 0, 0, "" );
+				el = self.paper.text( a.x, a.y, a.text );
 				break;
 			default:				// "pen|line|arrow" and other yet unknown
-				shape = self.paper.path( "" );
+				el = self.paper.path( "" );
 		}
-		shape.id = element.id;
-		shape.attr( element.attrs );
-		shape.transform( element.transform );
+		el.id = element.id;
+		// NOTE: Unfortunately, we need this hack as well!
+		el.node.raphaelid = element.id;
 
-		var id;
-		for ( var i=self.shapes.length-1;i>=0;i-- ) {
-			if ( shape.id > self.shapes[i].id ) {
-				id = self.shapes[i].id;
+		el.attr( a );
+		el.transform( element.transform );
+
+		for ( var i=elements.length-1;i>=0;i-- ) {
+			if ( el.id > elements[i].id ) {
+				id = elements[i].id;
 				break;
 			}
 		}
 		if ( id ) {
-			shape.insertAfter( self.paper.getById( id ) );
-			self.shapes.splice( i + 1, 0, shape );
+			el.insertAfter( self.paper.getById( id ) );
+			elements.splice( i + 1, 0, el );
 		} else {
-			self.shapes.push( shape );
+			elements.push( el );
 		}
 
-		return shape;
+		return el;
 	}

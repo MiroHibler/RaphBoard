@@ -14,22 +14,21 @@ module.exports = function(grunt) {
 
 
 	// read config files, and combine into one "meta" object
-	var packageConfig = grunt.file.readJSON('package.json');
-	var componentConfig = grunt.file.readJSON('component.json');
-	var pluginConfig = grunt.file.readJSON('jquery.raphboard.json');
-	var meta = _.extend({}, packageConfig, componentConfig, pluginConfig);
-	
-	
+	var packageConfig	= grunt.file.readJSON('package.json');
+	var componentConfig	= grunt.file.readJSON('component.json');
+	var pluginConfig	= grunt.file.readJSON('raphboard.json');
+	var meta			= _.extend({}, packageConfig, componentConfig, pluginConfig);
+
 	var config = {	// this will eventually get passed to grunt.initConfig
-		meta: meta,	// do this primarily for templating (<%= %>)
+		meta	: meta,	// do this primarily for templating (<%= %>)
 
 		// initialize multitasks
-		concat: {},
-		uglify: {},
-		copy: {},
+		concat	: {},
+		uglify	: {},
+		copy	: {},
 		compress: {},
-		clean: {},
-		watch: {}	// we will add watch tasks whenever we do concats, so files get re-concatenated upon save
+		clean	: {},
+		watch	: {}	// we will add watch tasks whenever we do concats, so files get re-concatenated upon save
 	};
 
 
@@ -45,50 +44,50 @@ module.exports = function(grunt) {
 	grunt.registerTask('dist', 'Create a distributable ZIP file', [
 		'clean:build',
 		'submodules',
-		'uglify',
+		'uglify',	// we want the minified JS in there
 		'copy:deps',
 		'copy:demos',
 		'copy:misc',
 		'compress'
 	]);
 
-	grunt.registerTask('dev', 'Build necessary files for developing and debugging', 'submodules');
+	grunt.registerTask('submodules', 'Build all RaphBoard submodules (board only)', [
+		'main'
+	]);
 
-	grunt.registerTask('min', 'The same as dev + uglify', [
+	grunt.registerTask('min', 'The same as submodules + uglify', [
 		'submodules',
 		'uglify'
 	]);
 
-	grunt.registerTask('submodules', 'Build all RaphBoard submodules', [
-		'main'
+	grunt.registerTask('dev', 'Build necessary files for developing and debugging', [
+		'concat:devJs',
+		'concat:devCss',
+		'uglify',
+		'copy:deps',
 	]);
 
 
-	/* Main Submodule
+	/* Main Submodule (board only)
 	----------------------------------------------------------------------------------------------------*/
 
-	grunt.registerTask('main', 'Build the main RaphBoard submodule', [
+	grunt.registerTask('main', 'Build the main RaphBoard submodule (board only)', [
 		'concat:mainJs',
 		'concat:mainCss'
 	]);
 
 	// JavaScript
-
 	config.concat.mainJs = {
 		options: {
 			process: true	// replace template variables
 		},
 		src: [
 			'source/header.js',
-			'source/ButtonIcon.js',
-			'source/Button.js',
-			'source/ToolBar.js',
 			'source/Canvas.js',
-			'source/AttributesPanel.js',
 			'source/RaphBoard.js',
 			'source/footer.js'
 		],
-		dest: 'build/out/RaphBoard/jquery.raphboard.js'
+		dest: 'build/out/raphboard.js'
 	};
 
 	config.watch.mainJs = {
@@ -97,7 +96,6 @@ module.exports = function(grunt) {
 	};
 
 	// CSS
-
 	config.concat.mainCss = {
 		options: {
 			process: true	// replace template variables
@@ -113,6 +111,50 @@ module.exports = function(grunt) {
 		tasks: 'concat:mainCss'
 	};
 
+
+	/* All Submodules (incl. toolbar)
+	----------------------------------------------------------------------------------------------------*/
+
+	// JavaScript
+	config.concat.devJs = {
+		options: {
+			process: true	// replace template variables
+		},
+		src: [
+			'source/header.js',
+			'source/ButtonIcon.js',
+			'source/Button.js',
+			'source/ToolBar.js',
+			'source/Canvas.js',
+			'source/AttributesPanel.js',
+			'source/RaphBoard.js',
+			'source/footer.js'
+		],
+		dest: 'build/out/raphboard.js'
+	};
+
+	config.watch.devJs = {
+		files: config.concat.devJs.src,
+		tasks: 'concat:devJs'
+	};
+
+	// CSS
+	config.concat.devCss = {
+		options: {
+			process: true	// replace template variables
+		},
+		src: [
+			'demos/css/RaphBoard.css'
+		],
+		dest: 'build/out/demos/css/RaphBoard.css'
+	};
+
+	config.watch.devCss = {
+		files: config.concat.devCss.src,
+		tasks: 'concat:devCss'
+	};
+
+
 	/* Minify the JavaScript
 	----------------------------------------------------------------------------------------------------*/
 
@@ -121,8 +163,8 @@ module.exports = function(grunt) {
 			preserveComments: 'some'	// keep comments starting with /*!
 		},
 		expand: true,
-		src: 'build/out/RaphBoard/jquery.raphboard.js',
-		ext: '.raphboard.min.js'
+		src: 'build/out/raphboard.js',
+		ext: '.min.js'
 	}
 
 
@@ -133,7 +175,7 @@ module.exports = function(grunt) {
 		expand: true,
 		flatten: true,
 		src: depFiles,
-		dest: 'build/out/raphael/'
+		dest: 'build/out/demos/js/'
 	};
 
 
@@ -174,7 +216,7 @@ module.exports = function(grunt) {
 				}
 				else {
 					src = src.replace('../build/out/', '../');
-					src = src.replace('/jquery.raphboard.', '/jquery.raphboard.min.');	// use minified version of main JS file
+					src = src.replace('/raphboard.', '/raphboard.min.');	// use minified version of main JS file
 					return before + src + after;
 				}
 			}
@@ -221,7 +263,8 @@ module.exports = function(grunt) {
 	grunt.registerTask('component', 'Build the RaphBoard component for the Bower package manager', [
 		'clean:build',
 		'submodules',
-		'uglify', // we want the minified JS in there
+		'uglify',
+		'copy:deps',
 		'copy:demos',
 		'copy:component',
 		'copy:componentReadme',
@@ -230,7 +273,7 @@ module.exports = function(grunt) {
 
 	config.copy.component = {
 		expand: true,
-		cwd: 'build/out/RaphBoard/',
+		cwd: 'build/out/',
 		src: '**',
 		dest: 'build/component/',
 	};
@@ -240,7 +283,7 @@ module.exports = function(grunt) {
 		dest: 'build/component/README.md'
 	};
 
-	grunt.registerTask('componentConfig', function() {
+	grunt.registerTask('componentConfig', 'Build a component config file', function() {
 		grunt.file.write(
 			'build/component/component.json',
 			JSON.stringify(

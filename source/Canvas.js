@@ -6,7 +6,7 @@
 			self._container = $( "#" + id )
 
 			self._container.css( {
-				position	: "relative",
+				position	: "absolute",
 				width		: self._board.width() + "px",
 				height		: ( self._board.height() - ( self._board.options.showToolBar ? self._board.toolBar.height() : 0 ) ) + "px"
 			});

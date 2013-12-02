@@ -1,9 +1,10 @@
 {
 	"name"			: "raphboard",
-	"version"		: "1.0.1",
+	"version"		: "1.1.0",
 	"dependencies"	: {
-		"raphael"	: "",
-		"jquery"	: ""
+		"jquery"	: "http://jquery.com",
+		"raphael"	: "http://raphaeljs.com/",
+		"freetransform"	: "http://alias.io/raphael/free_transform/"
   },
 
   "optionalDependencies": {
@@ -22,7 +23,7 @@
   "licenses": [
     {
 		"type"	: "MIT",
-		"url"	: "https://raw.github.com/MiroHibler/RaphBoard/master/LICENSE.txt"
+		"url"	: "http://opensource.org/licenses/mit-license.php"
     }
   ],
 
