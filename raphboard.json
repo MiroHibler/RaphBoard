@@ -2,17 +2,30 @@
 	"name"			: "raphboard",
 	"version"		: "1.1.0",
 	"dependencies"	: {
-		"jquery"	: "http://jquery.com",
-		"raphael"	: "http://raphaeljs.com/",
-		"freetransform"	: "http://alias.io/raphael/free_transform/"
-  },
+		"jquery"		: "~1.10.1",
+		"raphael"		: "~2.1.2",
+		"freetransform"	: "*"
+	},
 
-  "optionalDependencies": {
-  },
+	"optionalDependencies": {
+	},
 
 	"title"			: "RaphBoard",
-	"description"	: "Cross-browser drawing board based on Raphaël JavaScript Vector Library",
-	"keywords"		: [ "online", "web", "browser", "drawing", "blackboard", "canvas", "raphael" ],
+	"description"	: "Cross-browser drawing board based on Raphaël JavaScript Vector Library & FreeTransform Tool",
+	"keywords"		: [
+		"online",
+		"web",
+		"browser",
+		"drawing",
+		"blackboard",
+		"canvas",
+		"raphael",
+		"javascript",
+		"vector",
+		"library"
+		"transform",
+		"FreeTransform"
+	],
 
 	"homepage"	: "http://MiroHibler.github.com/RaphBoard/",
 	"demo"		: "http://MiroHibler.github.com/RaphBoard/playground.html",
@@ -20,18 +33,18 @@
 	"download"	: "http://MiroHibler.github.com/RaphBoard/",
 	"bugs"		: "https://groups.google.com/d/forum/raphboard",
 
-  "licenses": [
-    {
-		"type"	: "MIT",
-		"url"	: "http://opensource.org/licenses/mit-license.php"
-    }
-  ],
+	"licenses": [
+		{
+			"type"	: "MIT",
+			"url"	: "http://miro.mit-license.org"
+		}
+	],
 
-  "author": {
-	"name"	: "Miroslav Hibler",
-	"email"	: "miro@hibler.me",
-	"url"	: "http://miro.hibler.me/"
-  },
+	"author": {
+		"name"	: "Miroslav Hibler",
+		"email"	: "miro@hibler.me",
+		"url"	: "http://miro.hibler.me/"
+	},
 
 	"copyright"	: "2012-2013 Miroslav Hibler"
 }

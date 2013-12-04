@@ -1,11 +1,12 @@
 /*! ┌─────────────────────────────────────────────────────────────────────────────────────────────┐ */
-/*! │ <%= meta.title %> v<%= meta.version %> - Cross-browser drawing board based on Raphaël                             │ */
+/*! │ <%= meta.title %> v<%= meta.version %>                                                      | */
+/*! | <%= meta.description %> │ */
 /*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
 /*! │ Copyright © <%= meta.copyright %> (<%= meta.homepage %>)             │ */
 /*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
-/*! │ Licensed under the MIT license (http://opensource.org/licenses/mit-license.php).            │ */
+/*! │ Licensed under the MIT license (<%= meta.licenses.MIT %>).                               │ */
 /*! ├─────────────────────────────────────────────────────────────────────────────────────────────┤ */
-/*! │ Requirements: jQuery  (http://jquery.com)                                                   │ */
+/*! │ Dependencies: jQuery  (http://jquery.com)                                                   │ */
 /*! |               Raphaël (http://raphaeljs.com)                                                │ */
 /*! │               Raphaël FreeTransform (http://alias.io/raphael/free_transform/)               │ */
 /*! └─────────────────────────────────────────────────────────────────────────────────────────────┘ */
