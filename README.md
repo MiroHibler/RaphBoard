@@ -1,6 +1,6 @@
-# RaphBoard
+# RaphBoard - Cross-browser drawing board
 
-## Cross-browser drawing board based on [Raphaël](http://MiroHibler.github.io/RaphBoard/).
+## Based on [Raphaël](http://MiroHibler.github.io/RaphBoard/) & [Raphaël FreeTransform](http://alias.io/raphael/free_transform/).
 
 ![RaphBoard - Cross-browser drawing board](http://MiroHibler.github.io/RaphBoard/images/RaphBoard.jpg)
 
@@ -66,16 +66,17 @@ After adding your changes, execute `grunt` in the project folder to generate the
 
 ## Changelog
 
-### 1.1.0
+### v1.1.0
+ * Added [Raphaël FreeTransform](http://alias.io/raphael/free_transform/)
  * Toolbar and Attributes Panel now optional (use `grunt dev` to include them).
  * Dropped 'jquery.' prefix for distributables.
  * Bug fix: not accepting options on initialization.
  * Various other bug fixes.
 
-### 1.0.1
+### v1.0.1
  * Various bug fixes.
 
-### 1.0.0
+### v1.0.0
  * Initial release (Duh!)
 
 ## Copyright and license
